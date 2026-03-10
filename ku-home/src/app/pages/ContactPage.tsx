@@ -1,7 +1,25 @@
+import { useState } from "react";
 import { motion } from "motion/react";
 import { Mail, Phone, MapPin, Clock, Send } from "lucide-react";
 
 export function ContactPage() {
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    subject: 'General Inquiry',
+    message: '',
+  });
+  const [submitted, setSubmitted] = useState(false);
+
+  const handleSubmit = () => {
+    // Basic validation
+    if (!formData.firstName || !formData.email || !formData.message) return;
+    setSubmitted(true);
+    setTimeout(() => setSubmitted(false), 4000);
+    setFormData({ firstName: '', lastName: '', email: '', subject: 'General Inquiry', message: '' });
+  };
+
   return (
     <div className="bg-gray-50 min-h-screen">
       {/* Hero Section */}
@@ -69,10 +87,14 @@ export function ContactPage() {
                 <div>
                   <h3 className="text-xl font-bold text-gray-900 mb-2">Phone</h3>
                   <p className="text-gray-600 mb-1">
-                    <span className="font-semibold">Main:</span> +66 2 942 8888
+                    <a href="tel:064-130-6010" className="hover:text-[#006b54] transition-colors">
+                      <span className="font-semibold">Line 1:</span> 064-130-6010
+                    </a>
                   </p>
                   <p className="text-gray-600">
-                    <span className="font-semibold">Fax:</span> +66 2 942 8889
+                    <a href="tel:064-130-9010" className="hover:text-[#006b54] transition-colors">
+                      <span className="font-semibold">Line 2:</span> 064-130-9010
+                    </a>
                   </p>
                 </div>
               </div>
@@ -83,11 +105,10 @@ export function ContactPage() {
                 </div>
                 <div>
                   <h3 className="text-xl font-bold text-gray-900 mb-2">Email</h3>
-                  <p className="text-gray-600">
-                    info@kuhome.ku.ac.th
-                  </p>
-                  <p className="text-gray-600">
-                    reservations@kuhome.ku.ac.th
+                  <p className="text-gray-600 mb-1">
+                    <a href="mailto:kuhome@ku.th" className="hover:text-[#006b54] transition-colors">
+                      kuhome@ku.th
+                    </a>
                   </p>
                 </div>
               </div>
@@ -114,12 +135,21 @@ export function ContactPage() {
             className="bg-white p-8 md:p-10 rounded-2xl shadow-xl border border-gray-100"
           >
             <h3 className="text-2xl font-bold text-gray-900 mb-6">Send us a message</h3>
-            <form className="space-y-6">
+
+            {submitted && (
+              <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-xl text-green-800 font-medium text-center">
+                ✓ Message sent! We'll get back to you shortly.
+              </div>
+            )}
+
+            <div className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-bold text-gray-700 mb-2">First Name</label>
                   <input 
-                    type="text" 
+                    type="text"
+                    value={formData.firstName}
+                    onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
                     className="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-200 focus:border-[#006b54] focus:ring-2 focus:ring-[#006b54]/20 outline-none transition-all"
                     placeholder="John"
                   />
@@ -127,7 +157,9 @@ export function ContactPage() {
                 <div>
                   <label className="block text-sm font-bold text-gray-700 mb-2">Last Name</label>
                   <input 
-                    type="text" 
+                    type="text"
+                    value={formData.lastName}
+                    onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
                     className="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-200 focus:border-[#006b54] focus:ring-2 focus:ring-[#006b54]/20 outline-none transition-all"
                     placeholder="Doe"
                   />
@@ -137,7 +169,9 @@ export function ContactPage() {
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-2">Email Address</label>
                 <input 
-                  type="email" 
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   className="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-200 focus:border-[#006b54] focus:ring-2 focus:ring-[#006b54]/20 outline-none transition-all"
                   placeholder="john@example.com"
                 />
@@ -145,7 +179,11 @@ export function ContactPage() {
 
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-2">Subject</label>
-                <select className="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-200 focus:border-[#006b54] focus:ring-2 focus:ring-[#006b54]/20 outline-none transition-all">
+                <select
+                  value={formData.subject}
+                  onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
+                  className="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-200 focus:border-[#006b54] focus:ring-2 focus:ring-[#006b54]/20 outline-none transition-all"
+                >
                   <option>General Inquiry</option>
                   <option>Room Reservation</option>
                   <option>Group Booking</option>
@@ -157,20 +195,22 @@ export function ContactPage() {
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-2">Message</label>
                 <textarea 
-                  rows={4} 
+                  rows={4}
+                  value={formData.message}
+                  onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                   className="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-200 focus:border-[#006b54] focus:ring-2 focus:ring-[#006b54]/20 outline-none transition-all resize-none"
                   placeholder="How can we help you?"
                 ></textarea>
               </div>
 
               <button 
-                type="submit"
+                onClick={handleSubmit}
                 className="w-full bg-[#006b54] text-white font-bold py-4 rounded-xl hover:bg-[#005a46] transition-all shadow-lg hover:shadow-xl flex items-center justify-center"
               >
                 Send Message
                 <Send className="w-4 h-4 ml-2" />
               </button>
-            </form>
+            </div>
           </motion.div>
         </div>
       </div>

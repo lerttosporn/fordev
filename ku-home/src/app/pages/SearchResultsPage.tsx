@@ -31,10 +31,8 @@ export function SearchResultsPage() {
   const [guestFilter, setGuestFilter] = useState<number>(0);
 
   useEffect(() => {
-    // Apply filters
     let rooms = [...ROOMS];
 
-    // Filter by guests
     const guests = parseInt(searchParams.get('guests') || '0') || guestFilter;
     if (guests > 0) {
       rooms = rooms.filter(room => room.maxGuests >= guests);
@@ -49,7 +47,6 @@ export function SearchResultsPage() {
     } else if (priceFilter === 'general') {
       return room.rates.daily.general;
     }
-    // Show both if 'all'
     return room.rates.daily.general;
   };
 
@@ -168,39 +165,27 @@ export function SearchResultsPage() {
                   <div className="bg-gray-50 rounded-xl p-4 mb-4 space-y-3">
                     <div className="flex justify-between items-center pb-2 border-b border-gray-200 border-dashed">
                       <div className="flex items-center gap-2">
-                        <span className="text-xs font-semibold text-gray-500 uppercase">Standard Rate</span>
+                        <Building2 className="w-4 h-4 text-gray-500" />
+                        <span className="text-xs font-semibold text-gray-500 uppercase">Public Rate</span>
                       </div>
-                      <span className="text-lg font-bold text-gray-900">
+                      <span className="text-sm font-bold text-gray-900">
                         ฿{room.rates.daily.general.toLocaleString()}
                         <span className="text-xs font-normal text-gray-500 ml-1">/night</span>
                       </span>
                     </div>
-                    
                     <div className="flex justify-between items-center pb-2 border-b border-gray-200 border-dashed">
                       <div className="flex items-center gap-2">
-                        <GraduationCap className="w-3 h-3 text-[#006b54]" />
-                        <span className="text-xs font-bold text-[#006b54] uppercase">Personnel</span>
+                        <GraduationCap className="w-4 h-4 text-[#006b54]" />
+                        <span className="text-xs font-semibold text-[#006b54] uppercase">KU Personnel</span>
                       </div>
-                      <span className="text-lg font-bold text-[#006b54]">
+                      <span className="text-sm font-bold text-[#006b54]">
                         ฿{room.rates.daily.personnel.toLocaleString()}
                         <span className="text-xs font-normal text-[#006b54]/70 ml-1">/night</span>
                       </span>
                     </div>
-
-                    <div className="flex justify-between items-center pb-2 border-b border-gray-200 border-dashed">
-                      <div className="flex items-center gap-2">
-                        <Building2 className="w-3 h-3 text-blue-600" />
-                        <span className="text-xs font-semibold text-blue-600 uppercase">Group (5+ rooms)</span>
-                      </div>
-                      <span className="text-sm font-bold text-blue-600">
-                        ฿{room.rates.group.min5Rooms.toLocaleString()}
-                        <span className="text-xs font-normal text-blue-600/70 ml-1">/night</span>
-                      </span>
-                    </div>
-
                     <div className="flex justify-between items-center">
                       <div className="flex items-center gap-2">
-                        <CalendarIcon className="w-3 h-3 text-purple-600" />
+                        <CalendarIcon className="w-4 h-4 text-purple-500" />
                         <span className="text-xs font-semibold text-purple-600 uppercase">Monthly Rate</span>
                       </div>
                       <span className="text-sm font-bold text-purple-600">
@@ -292,8 +277,8 @@ export function SearchResultsPage() {
             </div>
             <div>
               <h3 className="font-bold text-gray-900 mb-2">Contact</h3>
-              <p>Phone: +66 2 XXX XXXX</p>
-              <p>Email: info@kuhome.ku.ac.th</p>
+              <p>Phone: 064-130-6010</p>
+              <p>Email: kuhome@ku.th</p>
             </div>
           </div>
         </div>

@@ -22,7 +22,7 @@ export function Navbar() {
 
   const links = [
     { name: "Home", href: "/" },
-    { name: "Accommodation", href: "/#rooms" },
+    { name: "Accommodation", href: "/rooms" },
     { name: "Our Services", href: "/services" },
     { name: "Facilities", href: "/facilities" },
     { name: "Contact Us", href: "/contact" },
@@ -73,60 +73,32 @@ export function Navbar() {
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-56">
                     <DropdownMenuLabel>
-                      <div className="flex flex-col">
-                        <span className="font-medium">{user.name}</span>
-                        <span className="text-xs text-muted-foreground">{user.email}</span>
-                      </div>
+                      <div className="font-bold">{user.name || 'User'}</div>
+                      <div className="text-xs font-normal text-gray-500">{user.email}</div>
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem asChild>
-                      <Link to="/profile" className="cursor-pointer">
-                        <User className="mr-2 h-4 w-4" />
+                      <Link to="/profile" className="flex items-center cursor-pointer">
+                        <User className="w-4 h-4 mr-2" />
                         My Profile
                       </Link>
                     </DropdownMenuItem>
-                    
-                    {/* Admin Menu Items */}
-                    {((user as any).role === 'admin' || (user as any).role === 'staff') && (
+                    {(user.role === 'admin' || user.role === 'staff') && (
                       <>
                         <DropdownMenuSeparator />
-                        <DropdownMenuLabel className="text-xs text-muted-foreground">
-                          Admin Panel
-                        </DropdownMenuLabel>
                         <DropdownMenuItem asChild>
-                          <Link to="/admin/dashboard" className="cursor-pointer">
-                            <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-                              <line x1="9" y1="3" x2="9" y2="21"/>
-                            </svg>
-                            Dashboard
-                          </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                          <Link to="/admin/housekeeping" className="cursor-pointer">
-                            <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                              <circle cx="12" cy="7" r="4"/>
-                            </svg>
-                            Housekeeping
-                          </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                          <Link to="/admin/reports" className="cursor-pointer">
-                            <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                              <line x1="12" y1="20" x2="12" y2="10"/>
-                              <line x1="18" y1="20" x2="18" y2="4"/>
-                              <line x1="6" y1="20" x2="6" y2="16"/>
-                            </svg>
-                            Reports
+                          <Link to="/admin" className="flex items-center cursor-pointer">
+                            Admin Portal
                           </Link>
                         </DropdownMenuItem>
                       </>
                     )}
-                    
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer text-red-600">
-                      <LogOut className="mr-2 h-4 w-4" />
+                    <DropdownMenuItem
+                      onClick={handleSignOut}
+                      className="text-red-600 focus:text-red-600 cursor-pointer"
+                    >
+                      <LogOut className="w-4 h-4 mr-2" />
                       Sign Out
                     </DropdownMenuItem>
                   </DropdownMenuContent>
@@ -143,7 +115,7 @@ export function Navbar() {
               )}
 
               <Link
-                to="/#rooms"
+                to="/rooms"
                 className="bg-[#006b54] hover:bg-[#005a46] text-white px-6 py-2.5 rounded-full font-bold transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5 text-sm"
               >
                 BOOK NOW
@@ -233,7 +205,7 @@ export function Navbar() {
                 )}
                 <div className="pt-4">
                   <Link
-                    to="/room/suite"
+                    to="/rooms"
                     className="block w-full text-center bg-[#006b54] text-white px-4 py-3 rounded-md font-bold shadow-md"
                     onClick={() => setIsOpen(false)}
                   >

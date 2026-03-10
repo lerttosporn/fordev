@@ -110,6 +110,7 @@ useEffect(()=>{
               </div>
             </div>
             <button
+              type="button"
               onClick={handleSearch}
               className="w-full md:w-auto bg-[#006b54] hover:bg-[#005a46] text-white py-4 px-8 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5 flex items-center justify-center whitespace-nowrap mt-4 md:mt-0"
             >

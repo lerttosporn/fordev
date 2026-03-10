@@ -1,11 +1,23 @@
 import { Link } from "react-router-dom";
 import { BookingSteps } from "../../components/BookingSteps.tsx";
-import { Upload, User, Mail, Phone, CreditCard, ChevronRight } from "lucide-react";
+import { Upload, User, Mail, Phone, CreditCard, ChevronRight, Coffee } from "lucide-react";
 import { useState } from "react";
 import { motion } from "motion/react";
 
+const BREAKFAST_PRICE_PER_PERSON = 150;
+const MOCK_NIGHTS = 2;
+const MOCK_GUESTS = 2;
+const MOCK_ROOM_RATE_GENERAL = 1800;
+const MOCK_ROOM_RATE_KU = 1500;
+
 export function GuestInfoPage() {
   const [isKuMember, setIsKuMember] = useState(false);
+  const [includeBreakfast, setIncludeBreakfast] = useState(false);
+
+  const roomRate = isKuMember ? MOCK_ROOM_RATE_KU : MOCK_ROOM_RATE_GENERAL;
+  const roomTotal = roomRate * MOCK_NIGHTS;
+  const breakfastTotal = includeBreakfast ? BREAKFAST_PRICE_PER_PERSON * MOCK_GUESTS * MOCK_NIGHTS : 0;
+  const grandTotal = roomTotal + breakfastTotal;
 
   return (
     <div className="bg-gray-50 min-h-screen pb-20">
@@ -33,7 +45,6 @@ export function GuestInfoPage() {
                   </select>
                 </div>
                 <div>
-                   {/* Spacer for alignment if needed, or nationality */}
                    <label className="block text-sm font-bold text-gray-700 mb-2">Nationality</label>
                    <input type="text" className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#006b54] focus:border-transparent outline-none transition-all" placeholder="Thai" />
                 </div>
@@ -49,37 +60,31 @@ export function GuestInfoPage() {
                   <label className="block text-sm font-bold text-gray-700 mb-2">ID Card / Passport Number</label>
                   <input type="text" className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#006b54] focus:border-transparent outline-none transition-all" />
                 </div>
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">
+                    <Mail className="w-4 h-4 inline mr-1" /> Email Address
+                  </label>
+                  <input type="email" className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#006b54] focus:border-transparent outline-none transition-all" />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">
+                    <Phone className="w-4 h-4 inline mr-1" /> Phone Number
+                  </label>
+                  <input type="tel" className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#006b54] focus:border-transparent outline-none transition-all" />
+                </div>
               </div>
             </div>
 
+            {/* KU Member Toggle */}
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
-                <Mail className="w-6 h-6 mr-3 text-[#006b54]" />
-                Contact Info
+              <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center">
+                <GraduationCapIcon className="w-6 h-6 mr-3 text-[#006b54]" />
+                KU Member Discount
               </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">Email</label>
-                  <input type="email" className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#006b54] focus:border-transparent outline-none transition-all" placeholder="name@example.com" />
-                </div>
-                <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">Phone Number</label>
-                  <input type="tel" className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#006b54] focus:border-transparent outline-none transition-all" placeholder="08x-xxx-xxxx" />
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 relative overflow-hidden">
-               <div className={`absolute top-0 right-0 w-32 h-32 bg-yellow-400 rounded-full blur-3xl opacity-10 pointer-events-none transition-opacity ${isKuMember ? 'opacity-20' : 'opacity-0'}`} />
-               <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
-                 <GraduationCapIcon className="w-6 h-6 mr-3 text-[#006b54]" />
-                 Membership Status
-               </h2>
-               
-               <div className="flex items-center mb-6">
-                 <button 
+              <div className="flex items-center mb-4">
+                 <button
                    onClick={() => setIsKuMember(!isKuMember)}
-                   className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[#006b54] focus:ring-offset-2 ${isKuMember ? 'bg-[#006b54]' : 'bg-gray-200'}`}
+                   className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${isKuMember ? 'bg-[#006b54]' : 'bg-gray-200'}`}
                  >
                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${isKuMember ? 'translate-x-6' : 'translate-x-1'}`} />
                  </button>
@@ -124,15 +129,21 @@ export function GuestInfoPage() {
              <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 sticky top-24">
                 <h3 className="text-lg font-bold text-gray-900 mb-4 pb-4 border-b border-gray-100">Booking Summary</h3>
                 
+                {/* Room Info */}
                 <div className="flex items-start space-x-4 mb-4">
-                  <img src="https://images.unsplash.com/photo-1763402578679-f6fba8bee3e8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtb2Rlcm4lMjBzcGFjaW91cyUyMGhvdGVsJTIwc3VpdGUlMjByb29tJTIwd2l0aCUyMGJhbGNvbnklMjBhbmQlMjBsaXZpbmclMjBhcmVhfGVufDF8fHx8MTc3MDc5MzM3Nnww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral" className="w-20 h-20 rounded-lg object-cover" alt="Room" />
+                  <img
+                    src="https://images.unsplash.com/photo-1763402578679-f6fba8bee3e8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=400"
+                    className="w-20 h-20 rounded-lg object-cover flex-shrink-0"
+                    alt="Room"
+                  />
                   <div>
                     <h4 className="font-bold text-gray-900">Suite Room</h4>
                     <p className="text-sm text-gray-500">1 Bedroom, 52 sq.m.</p>
                   </div>
                 </div>
 
-                <div className="space-y-3 text-sm text-gray-600 mb-6">
+                {/* Stay Details */}
+                <div className="space-y-3 text-sm text-gray-600 mb-5">
                   <div className="flex justify-between">
                     <span>Check-in</span>
                     <span className="font-medium text-gray-900">Oct 12, 2024</span>
@@ -143,34 +154,85 @@ export function GuestInfoPage() {
                   </div>
                   <div className="flex justify-between">
                     <span>Duration</span>
-                    <span className="font-medium text-gray-900">2 Nights</span>
+                    <span className="font-medium text-gray-900">{MOCK_NIGHTS} Nights</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Guests</span>
-                    <span className="font-medium text-gray-900">2 Adults</span>
+                    <span className="font-medium text-gray-900">{MOCK_GUESTS} Adults</span>
                   </div>
                 </div>
 
-                <div className="bg-gray-50 rounded-lg p-4 mb-6">
-                   <div className="flex justify-between items-center mb-2">
-                      <span className="text-gray-600">Room Rate</span>
-                      <span className="font-medium">1,800 x 2</span>
-                   </div>
-                   {isKuMember && (
-                      <div className="flex justify-between items-center mb-2 text-green-600">
-                        <span>KU Discount</span>
-                        <span>-600</span>
+                {/* ── Breakfast Checkbox ── */}
+                <div className="mb-5">
+                  <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-3">Add-on Services</p>
+                  <label
+                    className={`flex items-start gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all ${
+                      includeBreakfast
+                        ? "border-[#006b54] bg-[#006b54]/5"
+                        : "border-gray-200 hover:border-gray-300"
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={includeBreakfast}
+                      onChange={(e) => setIncludeBreakfast(e.target.checked)}
+                      className="mt-0.5 w-4 h-4 accent-[#006b54] cursor-pointer flex-shrink-0"
+                    />
+                    <div className="flex-1">
+                      <div className="flex items-center gap-1.5">
+                        <Coffee className="w-4 h-4 text-[#006b54]" />
+                        <span className="text-sm font-semibold text-gray-900">Breakfast</span>
                       </div>
-                   )}
-                   <div className="border-t border-gray-200 pt-2 mt-2 flex justify-between items-center">
-                      <span className="font-bold text-gray-900">Total</span>
-                      <span className="font-bold text-xl text-[#006b54]">
-                        {isKuMember ? '3,000' : '3,600'} THB
-                      </span>
-                   </div>
+                      <p className="text-xs text-gray-500 mt-0.5">
+                        ฿{BREAKFAST_PRICE_PER_PERSON}/person/night · {MOCK_GUESTS} guests × {MOCK_NIGHTS} nights
+                      </p>
+                    </div>
+                    <span className={`text-sm font-bold flex-shrink-0 ${includeBreakfast ? "text-[#006b54]" : "text-gray-400"}`}>
+                      +฿{(BREAKFAST_PRICE_PER_PERSON * MOCK_GUESTS * MOCK_NIGHTS).toLocaleString()}
+                    </span>
+                  </label>
                 </div>
+
+                {/* Price Breakdown */}
+                <div className="bg-gray-50 rounded-xl p-4">
+                  <div className="flex justify-between items-center mb-2 text-sm">
+                    <span className="text-gray-600">Room Rate</span>
+                    <span className="font-medium text-gray-900">
+                      ฿{roomRate.toLocaleString()} × {MOCK_NIGHTS}
+                    </span>
+                  </div>
+
+                  {isKuMember && (
+                    <div className="flex justify-between items-center mb-2 text-sm text-green-600">
+                      <span>KU Discount</span>
+                      <span>-฿{((MOCK_ROOM_RATE_GENERAL - MOCK_ROOM_RATE_KU) * MOCK_NIGHTS).toLocaleString()}</span>
+                    </div>
+                  )}
+
+                  {includeBreakfast && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -4 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="flex justify-between items-center mb-2 text-sm text-[#006b54]"
+                    >
+                      <span className="flex items-center gap-1">
+                        <Coffee className="w-3.5 h-3.5" /> Breakfast
+                      </span>
+                      <span>+฿{breakfastTotal.toLocaleString()}</span>
+                    </motion.div>
+                  )}
+
+                  <div className="border-t border-gray-200 pt-3 mt-2 flex justify-between items-center">
+                    <span className="font-bold text-gray-900">Total</span>
+                    <span className="font-bold text-xl text-[#006b54]">
+                      ฿{grandTotal.toLocaleString()} THB
+                    </span>
+                  </div>
+                </div>
+
              </div>
           </div>
+
         </div>
       </div>
     </div>

@@ -1,4 +1,5 @@
 import { motion } from "motion/react";
+import { Link } from "react-router-dom";
 import { Clock, Shirt, Shield, Wifi, Utensils, Luggage, Sparkles, PhoneCall } from "lucide-react";
 
 export function ServicesPage() {
@@ -95,17 +96,17 @@ export function ServicesPage() {
         <div className="container mx-auto px-4 text-center text-white">
           <h2 className="text-3xl font-bold mb-6">Need Special Assistance?</h2>
           <p className="text-lg mb-8 max-w-2xl mx-auto opacity-90">
-            Our team is dedicated to making your stay as comfortable as possible. 
+            Our team is dedicated to making your stay as comfortable as possible.
             If you have specific requirements, please don't hesitate to contact us.
           </p>
           <div className="flex justify-center gap-4">
-            <a 
-              href="/#contact" 
+            <Link 
+              to="/contact" 
               className="bg-white text-[#006b54] px-8 py-3 rounded-xl font-bold hover:bg-gray-100 transition-colors inline-flex items-center"
             >
               <PhoneCall className="w-5 h-5 mr-2" />
               Contact Front Desk
-            </a>
+            </Link>
           </div>
         </div>
       </section>
