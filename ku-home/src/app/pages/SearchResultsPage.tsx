@@ -5,24 +5,15 @@ import { ROOMS } from "../data/rooms.ts";
 import { 
   Users, 
   Maximize, 
-  Star, 
   BedDouble, 
   CheckCircle2,
   GraduationCap,
   Building2,
   Calendar as CalendarIcon,
-  Filter
 } from 'lucide-react';
 import { Button } from "../components/ui/button.tsx";
 import { Badge } from "../components/ui/badge.tsx";
 import { Card } from "../components/ui/card.tsx";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../components/ui/select.tsx";
 
 export function SearchResultsPage() {
   const [searchParams] = useSearchParams();
@@ -41,14 +32,7 @@ export function SearchResultsPage() {
     setFilteredRooms(rooms);
   }, [searchParams, guestFilter]);
 
-  const getPriceDisplay = (room: typeof ROOMS[0]) => {
-    if (priceFilter === 'personnel') {
-      return room.rates.daily.personnel;
-    } else if (priceFilter === 'general') {
-      return room.rates.daily.general;
-    }
-    return room.rates.daily.general;
-  };
+
 
   return (
     <div className="min-h-screen bg-gray-50 py-12">
@@ -62,49 +46,6 @@ export function SearchResultsPage() {
             Found {filteredRooms.length} room{filteredRooms.length !== 1 ? 's' : ''} matching your criteria
           </p>
         </div>
-
-        {/* Filters */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-8">
-          <div className="flex items-center gap-2 mb-4">
-            <Filter className="w-5 h-5 text-[#006b54]" />
-            <h2 className="text-lg font-bold text-gray-900">Filters</h2>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Guest Type
-              </label>
-              <Select value={priceFilter} onValueChange={(value: any) => setPriceFilter(value)}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Prices</SelectItem>
-                  <SelectItem value="personnel">University Personnel</SelectItem>
-                  <SelectItem value="general">General Public</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Number of Guests
-              </label>
-              <Select value={guestFilter.toString()} onValueChange={(value) => setGuestFilter(parseInt(value))}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="0">Any</SelectItem>
-                  <SelectItem value="1">1 Guest</SelectItem>
-                  <SelectItem value="2">2 Guests</SelectItem>
-                  <SelectItem value="3">3 Guests</SelectItem>
-                  <SelectItem value="4">4+ Guests</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        </div>
-
         {/* Room Cards */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredRooms.map((room, index) => (

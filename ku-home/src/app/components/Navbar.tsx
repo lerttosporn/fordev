@@ -17,7 +17,6 @@ import {
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [authModalOpen, setAuthModalOpen] = useState(false);
-  const location = useLocation();
   const { user, signOut, loading } = useAuth();
 
   const links = [

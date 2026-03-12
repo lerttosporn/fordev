@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Layout } from "./Layout.tsx";
 import { HomePage } from "./pages/HomePage.tsx";
-import { SuiteDetailPage } from "./pages/SuiteDetailPage.tsx";
+import { RoomDetailPage } from "./pages/RoomDetailPage.tsx";
 import { SearchResultsPage } from "./pages/SearchResultsPage.tsx";
 import { GuestInfoPage } from "./pages/booking/GuestInfoPage.tsx";
 import { PaymentPage } from "./pages/booking/PaymentPage.tsx";
@@ -29,8 +29,7 @@ export default function App() {
           <Route path="/" element={<Layout />}>
             <Route index element={<HomePage />} />
             <Route path="rooms" element={<SearchResultsPage />} />
-            <Route path="room/:id" element={<SuiteDetailPage />} />
-            <Route path="room/suite" element={<SuiteDetailPage />} />
+            <Route path="room/:id" element={<RoomDetailPage />} />
             <Route path="services" element={<ServicesPage />} />
             <Route path="facilities" element={<FacilitiesPage />} />
             <Route path="contact" element={<ContactPage />} />

@@ -50,7 +50,7 @@ export const ROOMS: RoomModel[] = [
       },
       monthly: 15000
     },
-    amenities: ["Free Wi-Fi", "Air Conditioning", "Work Desk", "Shower"]
+    amenities: ["Wi-Fi", "Air Conditioning", "Work Desk", "Shower"]
   },
   {
     id: "deluxe",
@@ -77,7 +77,7 @@ export const ROOMS: RoomModel[] = [
       },
       monthly: 18000
     },
-    amenities: ["Free Wi-Fi", "Air Conditioning", "Smart TV", "Refrigerator", "Sofa"]
+    amenities: ["Wi-Fi", "Air Conditioning", "Smart TV", "Refrigerator", "Sofa"]
   },
   {
     id: "suite",
@@ -104,6 +104,6 @@ export const ROOMS: RoomModel[] = [
       },
       monthly: 27000
     },
-    amenities: ["Free Wi-Fi", "Separate Living Area", "Kitchenette", "Bathtub", "Balcony"]
+    amenities: ["Wi-Fi", "Separate Living Area", "Kitchenette", "Bathtub", "Balcony"]
   }
 ];

@@ -1,4 +1,4 @@
-import RoomModel from "../models/RoomModel";
+import RoomModel from "../models/RoomModel.tsx";
 
 export const ROOMS: RoomModel[] = [
   {
