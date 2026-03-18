@@ -29,6 +29,7 @@ export function GuestInfoPage() {
     extraBedsPrev,
     includeBreakfastPrev,
     totalPricePrev,
+    guestsPrev,
   } = location.state || {};
   // const calDateDiff = (start: string, end: string) => {
   //   const startDate = new Date(start);
@@ -36,7 +37,7 @@ export function GuestInfoPage() {
   //   const diffTime = endDate.getTime() - startDate.getTime();
   //   return Math.ceil(diffTime / (1000 * 60 * 60 * 24)); // คืนค่าเป็นจำนวนคืน
   // };
-  console.log("Received in GuestInfoPage:",{
+  console.log("Received in GuestInfoPage:", {
     room,
     checkInPrev,
     checkOutPrev,
@@ -44,7 +45,8 @@ export function GuestInfoPage() {
     extraBedsPrev,
     includeBreakfastPrev,
     totalPricePrev,
-  })
+    guestsPrev,
+  });
   const today = new Date().toISOString().split("T")[0];
   const [checkIn, setCheckIn] = useState(checkInPrev);
   const [checkOut, setCheckOut] = useState(checkOutPrev);
@@ -53,7 +55,7 @@ export function GuestInfoPage() {
     includeBreakfastPrev || false,
   );
   const [extraBeds, setExtraBeds] = useState(extraBedsPrev || 0);
-  const [guests, setGuests] = useState(1);
+  const [guests, setGuests] = useState(guestsPrev as number || 1);
   const getNextDay = (dateString: string) => {
     // ถ้าไม่มีค่าที่ส่งมา ให้ใช้วันนี้เป็นฐาน
     const date = dateString ? new Date(dateString) : new Date();
@@ -63,7 +65,6 @@ export function GuestInfoPage() {
     return date.toISOString().split("T")[0];
   };
   // 3. วันพรุ่งนี้ (กรณีที่ยังไม่ได้เลือก Check-in)
-  const tomorrow = getNextDay(today);
   return (
     <div className="bg-gray-50 min-h-screen pb-20">
       <BookingSteps currentStep={2} />
