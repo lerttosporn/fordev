@@ -55,7 +55,8 @@ export function GuestInfoPage() {
     includeBreakfastPrev || false,
   );
   const [extraBeds, setExtraBeds] = useState(extraBedsPrev || 0);
-  const [guests, setGuests] = useState(guestsPrev as number || 1);
+  const [guests, setGuests] = useState((guestsPrev as number) || 1);
+
   const getNextDay = (dateString: string) => {
     // ถ้าไม่มีค่าที่ส่งมา ให้ใช้วันนี้เป็นฐาน
     const date = dateString ? new Date(dateString) : new Date();
@@ -65,6 +66,7 @@ export function GuestInfoPage() {
     return date.toISOString().split("T")[0];
   };
   // 3. วันพรุ่งนี้ (กรณีที่ยังไม่ได้เลือก Check-in)
+  const tomorrow = getNextDay(checkIn || today);
   return (
     <div className="bg-gray-50 min-h-screen pb-20">
       <BookingSteps currentStep={2} />
@@ -235,7 +237,7 @@ export function GuestInfoPage() {
                 <div className="flex justify-between items-center">
                   <span className="text-gray-600">Check-in</span>
                   <span className="font-medium text-gray-900">
-                    {checkInPrev || checkIn || "--/--/--"}
+                    {checkInPrev || checkIn}
                   </span>
                   {/* ฝั่งขวา: กล่องแสดงวันที่ + ไอคอน (ครอบ relative ไว้) */}
                   <div className="relative flex items-center gap-2 cursor-pointer group">
@@ -262,7 +264,7 @@ export function GuestInfoPage() {
                 <div className="flex justify-between items-center">
                   <span className="text-gray-600">Check-out</span>
                   <span className="font-medium text-gray-900">
-                    {checkOutPrev || checkOut || "--/--/--"}
+                    {checkOutPrev || checkOut}
                   </span>
                   {/* ฝั่งขวา: กล่องแสดงวันที่ + ไอคอน (ครอบ relative ไว้) */}
                   <div className="relative flex items-center gap-2 cursor-pointer group">
@@ -274,10 +276,9 @@ export function GuestInfoPage() {
                     <input
                       type="date"
                       // วัน Check-out ควรเริ่มเลือกได้อย่างน้อยคือ "วันถัดจาก Check-in" หรือ "วันนี้"
-                      min={checkIn ? getNextDay(checkIn) : today}
+                      min={checkIn ? getNextDay(checkIn) : tomorrow}
                       value={checkOut}
                       onChange={(e) => setCheckOut(e.target.value)}
-                      // คลาสไม้ตาย: absolute ให้มันทับข้อความ/ไอคอนข้างบน และ opacity-0 เพื่อซ่อนให้ล่องหน
                       className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                     />
                   </div>
