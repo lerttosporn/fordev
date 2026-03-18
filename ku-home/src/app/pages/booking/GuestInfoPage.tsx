@@ -9,6 +9,7 @@ import {
   ChevronRight,
   Coffee,
   BedDouble,
+  CalendarIcon,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { motion } from "motion/react";
@@ -22,53 +23,47 @@ export function GuestInfoPage() {
   // 2. ดึงข้อมูลที่ส่งมาจากหน้า Room Detail
   const {
     room,
-    checkIn,
-    checkOut,
+    checkInPrev,
+    checkOutPrev,
+    calDateDiff,
     extraBedsPrev,
     includeBreakfastPrev,
     totalPricePrev,
   } = location.state || {};
-  const calDateDiff = (start: string, end: string) => {
-    const startDate = new Date(start);
-    const endDate = new Date(end);
-    const diffTime = endDate.getTime() - startDate.getTime();
-    return Math.ceil(diffTime / (1000 * 60 * 60 * 24)); // คืนค่าเป็นจำนวนคืน
-  };
-  // const [totalPrice, setTotalprice] = useState({
-  //   totalPriceGeneral:
-  //     totalPricePrev?.totalPriceGeneral || room.rates.daily.general,
-  //   totalPricePersonnel:
-  //     totalPricePrev?.totalPricePersonnel || room.rates.daily.personnel,
-  // });
-  // useEffect(() => {
-  //   if (!checkIn || !checkOut) {
-  //     setTotalprice({ 
-  //       totalPriceGeneral: room.rates.daily.general,
-  //       totalPricePersonnel: room.rates.daily.personnel,
-  //     });
-  //     return;
-  //   } // ถ้ายังไม่ได้เลือกวันเข้าพักหรือวันออก ให้ข้ามการคำนวณ
-  //   const extraBedCost = extraBeds * room.extraBedPrice || 0;
-
-  //   // 4. อัปเดต State ราคารวมใหม่
-  //   setTotalprice({
-  //     // สูตร: (ราคาห้องต่อคืน * จำนวนคืน) + ราคาเตียงเสริมรวม
-  //     totalPriceGeneral:
-  //       room.rates.daily.general * calDateDiff(checkIn, checkOut) +
-  //       extraBedCost,
-  //     totalPricePersonnel:
-  //       room.rates.daily.personnel * calDateDiff(checkIn, checkOut) +
-  //       extraBedCost,
-  //   });
-  //   setExtraBeds(extraBedsPrev);
-  // }, [checkIn, checkOut, extraBedsPrev]);
-
+  // const calDateDiff = (start: string, end: string) => {
+  //   const startDate = new Date(start);
+  //   const endDate = new Date(end);
+  //   const diffTime = endDate.getTime() - startDate.getTime();
+  //   return Math.ceil(diffTime / (1000 * 60 * 60 * 24)); // คืนค่าเป็นจำนวนคืน
+  // };
+  console.log("Received in GuestInfoPage:",{
+    room,
+    checkInPrev,
+    checkOutPrev,
+    calDateDiff,
+    extraBedsPrev,
+    includeBreakfastPrev,
+    totalPricePrev,
+  })
+  const today = new Date().toISOString().split("T")[0];
+  const [checkIn, setCheckIn] = useState(checkInPrev);
+  const [checkOut, setCheckOut] = useState(checkOutPrev);
   const [isKuMember, setIsKuMember] = useState(false);
-  const [includeBreakfast, setIncludeBreakfast] =
-    useState(includeBreakfastPrev);
-  const [extraBeds, setExtraBeds] = useState(0);
+  const [includeBreakfast, setIncludeBreakfast] = useState(
+    includeBreakfastPrev || false,
+  );
+  const [extraBeds, setExtraBeds] = useState(extraBedsPrev || 0);
   const [guests, setGuests] = useState(1);
-
+  const getNextDay = (dateString: string) => {
+    // ถ้าไม่มีค่าที่ส่งมา ให้ใช้วันนี้เป็นฐาน
+    const date = dateString ? new Date(dateString) : new Date();
+    // บวกเพิ่มไป 1 วัน
+    date.setDate(date.getDate() + 1);
+    // แปลงกลับเป็นฟอร์แมต YYYY-MM-DD
+    return date.toISOString().split("T")[0];
+  };
+  // 3. วันพรุ่งนี้ (กรณีที่ยังไม่ได้เลือก Check-in)
+  const tomorrow = getNextDay(today);
   return (
     <div className="bg-gray-50 min-h-screen pb-20">
       <BookingSteps currentStep={2} />
@@ -229,23 +224,67 @@ export function GuestInfoPage() {
                 />
                 <div>
                   <h4 className="font-bold text-gray-900">{room.name}</h4>
-                  <p className="text-sm text-gray-500">1 Bedroom, {room.sizeSqM} sq.m.</p>
+                  <p className="text-sm text-gray-500">
+                    1 Bedroom, {room.sizeSqM} sq.m.
+                  </p>
                 </div>
               </div>
               {/* Stay Details */}
               <div className="space-y-3 text-sm text-gray-600 mb-5">
-                <div className="flex justify-between">
-                  <span>Check-in</span>
-                  <span className="font-medium text-gray-900">{checkIn}</span>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600">Check-in</span>
+                  <span className="font-medium text-gray-900">
+                    {checkInPrev || checkIn || "--/--/--"}
+                  </span>
+                  {/* ฝั่งขวา: กล่องแสดงวันที่ + ไอคอน (ครอบ relative ไว้) */}
+                  <div className="relative flex items-center gap-2 cursor-pointer group">
+                    {/* 1. สิ่งที่มองเห็น (ข้อความวันที่ + ไอคอน) */}
+
+                    <CalendarIcon className="w-5 h-5 text-gray-400 group-hover:text-[#006b54] transition-colors" />
+
+                    {/* 2. สิ่งที่ซ่อนอยู่ (Input Date ตัวจริงที่โปร่งใส 100%) */}
+                    <input
+                      type="date"
+                      min={today}
+                      value={checkIn}
+                      onChange={(e) => {
+                        setCheckIn(e.target.value);
+                        //โบนัส: ถ้าผู้ใช้เปลี่ยน Check-in แล้ววัน Check-out ปัจจุบันมันดัน "เกิดก่อน" Check-in ให้ล้างค่า Check-out ทิ้งเลย
+                        if (checkOut && e.target.value >= checkOut) {
+                          setCheckOut("");
+                        }
+                      }}
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                    />
+                  </div>
                 </div>
-                <div className="flex justify-between">
-                  <span>Check-out</span>
-                  <span className="font-medium text-gray-900">{checkOut}</span>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600">Check-out</span>
+                  <span className="font-medium text-gray-900">
+                    {checkOutPrev || checkOut || "--/--/--"}
+                  </span>
+                  {/* ฝั่งขวา: กล่องแสดงวันที่ + ไอคอน (ครอบ relative ไว้) */}
+                  <div className="relative flex items-center gap-2 cursor-pointer group">
+                    {/* 1. สิ่งที่มองเห็น (ข้อความวันที่ + ไอคอน) */}
+
+                    <CalendarIcon className="w-5 h-5 text-gray-400 group-hover:text-[#006b54] transition-colors" />
+
+                    {/* 2. สิ่งที่ซ่อนอยู่ (Input Date ตัวจริงที่โปร่งใส 100%) */}
+                    <input
+                      type="date"
+                      // วัน Check-out ควรเริ่มเลือกได้อย่างน้อยคือ "วันถัดจาก Check-in" หรือ "วันนี้"
+                      min={checkIn ? getNextDay(checkIn) : today}
+                      value={checkOut}
+                      onChange={(e) => setCheckOut(e.target.value)}
+                      // คลาสไม้ตาย: absolute ให้มันทับข้อความ/ไอคอนข้างบน และ opacity-0 เพื่อซ่อนให้ล่องหน
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                    />
+                  </div>
                 </div>
                 <div className="flex justify-between">
                   <span>Duration</span>
                   <span className="font-medium text-gray-900">
-                    {calDateDiff(checkIn, checkOut)} Nights
+                    {calDateDiff} Nights
                   </span>
                 </div>
                 <div className="flex justify-between items-center gap-2">
@@ -304,7 +343,7 @@ export function GuestInfoPage() {
                     </div>
                     <p className="text-xs text-gray-500 mt-0.5">
                       ฿{BREAKFAST_PRICE_PER_PERSON}/person/night · {guests}
-                      guests × {calDateDiff(checkIn, checkOut)} nights
+                      guests × {calDateDiff} nights
                     </p>
                   </div>
                   <span
@@ -369,7 +408,7 @@ export function GuestInfoPage() {
                 <div className="flex justify-between items-center mb-2 text-sm">
                   <span className="text-gray-600">Room Rate</span>
                   <span className="font-medium text-gray-900">
-                    ฿{room.rates.daily.general * calDateDiff(checkIn, checkOut)}
+                    ฿{room.rates.daily.general * calDateDiff}
                     THB/night
                   </span>
                 </div>
@@ -382,7 +421,7 @@ export function GuestInfoPage() {
                       {(
                         (room.rates.daily.general -
                           room.rates.daily.personnel) *
-                        calDateDiff(checkIn, checkOut)
+                        calDateDiff
                       ).toLocaleString()}
                       THB/night
                     </span>
@@ -399,9 +438,7 @@ export function GuestInfoPage() {
                     </span>
                     <span>
                       +฿
-                      {BREAKFAST_PRICE_PER_PERSON *
-                        guests *
-                        calDateDiff(checkIn, checkOut)}
+                      {BREAKFAST_PRICE_PER_PERSON * guests * calDateDiff}
                     </span>
                   </motion.div>
                 )}
@@ -416,9 +453,7 @@ export function GuestInfoPage() {
                     </span>
                     <span>
                       +฿
-                      {extraBeds *
-                        room.extraBedPrice *
-                        calDateDiff(checkIn, checkOut)}
+                      {extraBeds * room.extraBedPrice * calDateDiff}
                     </span>
                   </motion.div>
                 )}
@@ -434,7 +469,7 @@ export function GuestInfoPage() {
                       (includeBreakfast
                         ? BREAKFAST_PRICE_PER_PERSON * guests
                         : 0)) *
-                      calDateDiff(checkIn, checkOut)}
+                      calDateDiff}
                     THB
                   </span>
                 </div>

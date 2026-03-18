@@ -21,16 +21,22 @@ import { ROOMS } from "../data/rooms.ts";
 
 export function RoomDetailPage() {
   const { id } = useParams();
-  const BREAKFAST_PRICE_PER_PERSON = 150;
-  const MOCK_NIGHTS = 2;
-  const MOCK_GUESTS = 2;
+  const calDateDiff = (start: string, end: string) => {
+    const startDate = new Date(start);
+    const endDate = new Date(end);
+    const diffTime = endDate.getTime() - startDate.getTime();
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24)); // คืนค่าเป็นจำนวนคืน
+  };
+
   // In a real app, this would use useParams to get the room ID
   const room = ROOMS.find((r) => r.id === id) || ROOMS[2];
   const [extraBeds, setExtraBeds] = useState(0);
   const [includeBreakfast, setIncludeBreakfast] = useState(false);
   const [checkIn, setCheckIn] = useState("");
   const [checkOut, setCheckOut] = useState("");
-
+  const [guests, setGuests] = useState(1);
+  const BREAKFAST_PRICE_PER_PERSON = 150;
+  const MOCK_NIGHTS = calDateDiff(checkIn, checkOut) || 1; // ถ้ายังไม่ได้เลือกวัน ให้ถือว่า 1 คืน เพื่อคำนวณราคาอาหารเช้า
   // 1. หาวันนี้ (สำหรับ Check-in ขั้นต่ำ)
   const today = new Date().toISOString().split("T")[0];
 
@@ -46,12 +52,6 @@ export function RoomDetailPage() {
   // 3. วันพรุ่งนี้ (กรณีที่ยังไม่ได้เลือก Check-in)
   const tomorrow = getNextDay(today);
 
-  const calDateDiff = (start: string, end: string) => {
-    const startDate = new Date(start);
-    const endDate = new Date(end);
-    const diffTime = endDate.getTime() - startDate.getTime();
-    return Math.ceil(diffTime / (1000 * 60 * 60 * 24)); // คืนค่าเป็นจำนวนคืน
-  };
   //คำนวนราคารวมทั้งหมด (รวมราคาห้อง + เตียงเสริม)
   const [totalPrice, setTotalprice] = useState({
     totalPriceGeneral: room.rates.daily.general,
@@ -282,6 +282,34 @@ export function RoomDetailPage() {
                       className="w-full border border-gray-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-[#006b54] focus:border-[#006b54] outline-none"
                     />
                   </div>
+                  <div className="flex justify-between items-center gap-2">
+                    <span className="block text-xs font-bold text-gray-700 uppercase mb-2">Guests</span>
+                    <span className="font-medium text-gray-900">
+                      <div className="flex items-center bg-white rounded-lg border border-gray-300 overflow-hidden">
+                        <button
+                          onClick={() =>
+                            setGuests((prev) => Math.max(1, prev - 1))
+                          }
+                          className={`px-3 py-1 text-gray-600 hover:bg-gray-100 ${guests === 1 ? "opacity-50 cursor-not-allowed" : ""}`}
+                          disabled={guests === 1}
+                        >
+                          -
+                        </button>
+                        <span className="px-2 font-medium text-gray-900 w-6 text-center">
+                          {guests}
+                        </span>
+                        <button
+                          onClick={() =>
+                            setGuests(Math.min(room.maxGuests, guests + 1))
+                          }
+                          className={`px-3 py-1 text-gray-600 hover:bg-gray-100 ${guests >= room.maxGuests ? "opacity-50 cursor-not-allowed" : ""}`}
+                          disabled={guests >= room.maxGuests}
+                        >
+                          +
+                        </button>
+                      </div>
+                    </span>
+                  </div>
                   {/* ── Breakfast Checkbox ── */}
                   <div className="mb-5">
                     <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-3">
@@ -309,7 +337,7 @@ export function RoomDetailPage() {
                         </div>
                         <p className="text-xs text-gray-500 mt-0.5">
                           ฿{BREAKFAST_PRICE_PER_PERSON}/person/night ·{" "}
-                          {MOCK_GUESTS} guests × {MOCK_NIGHTS} nights
+                          {guests} guests × {MOCK_NIGHTS} nights
                         </p>
                       </div>
                       <span
@@ -317,9 +345,7 @@ export function RoomDetailPage() {
                       >
                         +฿
                         {(
-                          BREAKFAST_PRICE_PER_PERSON *
-                          MOCK_GUESTS *
-                          MOCK_NIGHTS
+                          BREAKFAST_PRICE_PER_PERSON * MOCK_NIGHTS
                         ).toLocaleString()}
                       </span>
                     </label>
@@ -380,11 +406,12 @@ export function RoomDetailPage() {
                   to={`/booking/guest/`}
                   state={{
                     room: room,
-                    checkIn: checkIn,
-                    checkOut: checkOut,
-                    extraBeds: extraBeds,
-                    includeBreakfast: includeBreakfast,
-                    totalPrice: totalPrice,
+                    checkInPrev: checkIn,
+                    checkOutPrev: checkOut,
+                    calDateDiff: calDateDiff(checkIn, checkOut),
+                    extraBedsPrev: extraBeds,
+                    includeBreakfastPrev: includeBreakfast,
+                    totalPricePrev: totalPrice,
                   }}
                   onClick={(e) => {
                     // ป้องกันไม่ให้กดไปหน้าต่อไป ถ้ายังไม่เลือกวันให้ครบ
