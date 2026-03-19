@@ -21,7 +21,7 @@ import { ROOMS } from "../data/rooms.ts";
 
 export function RoomDetailPage() {
   const { id } = useParams();
-  const calDateDiff = (start: string, end: string) => {
+  const calDateDiff = (start: string, end: string): number => {
     const startDate = new Date(start);
     const endDate = new Date(end);
     const diffTime = endDate.getTime() - startDate.getTime();
@@ -67,18 +67,18 @@ export function RoomDetailPage() {
       return;
     } // ถ้ายังไม่ได้เลือกวันเข้าพักหรือวันออก ให้ข้ามการคำนวณ
     const extraBedCost = extraBeds * room.extraBedPrice || 0;
-
+    const totalBreakfastCost = includeBreakfast ? BREAKFAST_PRICE_PER_PERSON * guests * MOCK_NIGHTS : 0;
     // 4. อัปเดต State ราคารวมใหม่
     setTotalprice({
       // สูตร: (ราคาห้องต่อคืน * จำนวนคืน) + ราคาเตียงเสริมรวม
       totalPriceGeneral:
         room.rates.daily.general * calDateDiff(checkIn, checkOut) +
-        extraBedCost,
+        extraBedCost + totalBreakfastCost,
       totalPricePersonnel:
         room.rates.daily.personnel * calDateDiff(checkIn, checkOut) +
-        extraBedCost,
+        extraBedCost + totalBreakfastCost,
     });
-  }, [checkIn, checkOut, extraBeds]);
+  }, [checkIn, checkOut, extraBeds,includeBreakfast, guests]);
   // Helper to map string amenity to icon
   const getAmenityIcon = (amenity: string) => {
     const lower = amenity.toLowerCase();
@@ -408,10 +408,11 @@ export function RoomDetailPage() {
                     room: room,
                     checkInPrev: checkIn,
                     checkOutPrev: checkOut,
-                    calDateDiff: calDateDiff(checkIn, checkOut),
+                    calDateDiffPrev: calDateDiff(checkIn, checkOut),
                     extraBedsPrev: extraBeds,
                     includeBreakfastPrev: includeBreakfast,
                     totalPricePrev: totalPrice,
+                    guestsPrev: guests,
                   }}
                   onClick={(e) => {
                     // ป้องกันไม่ให้กดไปหน้าต่อไป ถ้ายังไม่เลือกวันให้ครบ

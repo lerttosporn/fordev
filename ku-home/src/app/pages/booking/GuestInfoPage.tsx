@@ -11,7 +11,7 @@ import {
   BedDouble,
   CalendarIcon,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import {  useState } from "react";
 import { motion } from "motion/react";
 
 const BREAKFAST_PRICE_PER_PERSON = 150;
@@ -19,44 +19,7 @@ const BREAKFAST_PRICE_PER_PERSON = 150;
 export function GuestInfoPage() {
   // const { id } = useParams();
   const location = useLocation(); // 1. เรียกใช้ useLocation
-
-  // 2. ดึงข้อมูลที่ส่งมาจากหน้า Room Detail
-  const {
-    room,
-    checkInPrev,
-    checkOutPrev,
-    calDateDiff,
-    extraBedsPrev,
-    includeBreakfastPrev,
-    totalPricePrev,
-    guestsPrev,
-  } = location.state || {};
-  // const calDateDiff = (start: string, end: string) => {
-  //   const startDate = new Date(start);
-  //   const endDate = new Date(end);
-  //   const diffTime = endDate.getTime() - startDate.getTime();
-  //   return Math.ceil(diffTime / (1000 * 60 * 60 * 24)); // คืนค่าเป็นจำนวนคืน
-  // };
-  console.log("Received in GuestInfoPage:", {
-    room,
-    checkInPrev,
-    checkOutPrev,
-    calDateDiff,
-    extraBedsPrev,
-    includeBreakfastPrev,
-    totalPricePrev,
-    guestsPrev,
-  });
   const today = new Date().toISOString().split("T")[0];
-  const [checkIn, setCheckIn] = useState(checkInPrev);
-  const [checkOut, setCheckOut] = useState(checkOutPrev);
-  const [isKuMember, setIsKuMember] = useState(false);
-  const [includeBreakfast, setIncludeBreakfast] = useState(
-    includeBreakfastPrev || false,
-  );
-  const [extraBeds, setExtraBeds] = useState(extraBedsPrev || 0);
-  const [guests, setGuests] = useState((guestsPrev as number) || 1);
-
   const getNextDay = (dateString: string) => {
     // ถ้าไม่มีค่าที่ส่งมา ให้ใช้วันนี้เป็นฐาน
     const date = dateString ? new Date(dateString) : new Date();
@@ -65,8 +28,60 @@ export function GuestInfoPage() {
     // แปลงกลับเป็นฟอร์แมต YYYY-MM-DD
     return date.toISOString().split("T")[0];
   };
+  // 2. ดึงข้อมูลที่ส่งมาจากหน้า Room Detail
+
+  const {
+    room,
+    checkInPrev = today,
+    checkOutPrev = getNextDay(today),
+    calDateDiffPrev = 1,
+    extraBedsPrev = 0,
+    includeBreakfastPrev = false,
+    totalPricePrev =0,
+    guestsPrev = 1,
+  } = location.state || {};
+  const tomorrow = getNextDay(checkInPrev);
+
+  const [checkIn, setCheckIn] = useState(checkInPrev);
+  const [checkOut, setCheckOut] = useState(checkOutPrev);
+  const [isKuMember, setIsKuMember] = useState(false);
+  const [includeBreakfast, setIncludeBreakfast] = useState(
+    includeBreakfastPrev || false,
+  );
+  const [extraBeds, setExtraBeds] = useState(extraBedsPrev);
+  const [guests, setGuests] = useState((guestsPrev as number));
+
+  const [calDateDiff, setCalDateDiff] = useState(
+    calDateDiffPrev,
+  );
+  // const [propsPrev, setPropsPrev] = useState(location.state || {});
+
   // 3. วันพรุ่งนี้ (กรณีที่ยังไม่ได้เลือก Check-in)
-  const tomorrow = getNextDay(checkIn || today);
+  const handleDatechange = (newCheckIn: string, newCheckOut: string) => {
+    const calDateDiff = (start: string, end: string) => {
+      const startDate = new Date(start);
+      const endDate = new Date(end);
+      const diffTime = endDate.getTime() - startDate.getTime();
+      return Math.ceil(diffTime / (1000 * 60 * 60 * 24)); // คืนค่าเป็นจำนวนคืน
+    };
+    setCheckIn(newCheckIn);
+    setCheckOut(newCheckOut);
+    setCalDateDiff(calDateDiff(newCheckIn, newCheckOut));
+  };
+  console.log("Received in GuestInfoPage:", {
+    room,
+    checkInPrev,
+    checkIn,
+    checkOutPrev,
+    checkOut,
+    calDateDiffPrev,
+    calDateDiff,
+    extraBedsPrev,
+    includeBreakfastPrev,
+    totalPricePrev,
+    guestsPrev,
+  });
+
   return (
     <div className="bg-gray-50 min-h-screen pb-20">
       <BookingSteps currentStep={2} />
@@ -236,9 +251,7 @@ export function GuestInfoPage() {
               <div className="space-y-3 text-sm text-gray-600 mb-5">
                 <div className="flex justify-between items-center">
                   <span className="text-gray-600">Check-in</span>
-                  <span className="font-medium text-gray-900">
-                    {checkInPrev || checkIn}
-                  </span>
+                  <span className="font-medium text-gray-900">{checkIn}</span>
                   {/* ฝั่งขวา: กล่องแสดงวันที่ + ไอคอน (ครอบ relative ไว้) */}
                   <div className="relative flex items-center gap-2 cursor-pointer group">
                     {/* 1. สิ่งที่มองเห็น (ข้อความวันที่ + ไอคอน) */}
@@ -251,10 +264,10 @@ export function GuestInfoPage() {
                       min={today}
                       value={checkIn}
                       onChange={(e) => {
-                        setCheckIn(e.target.value);
-                        //โบนัส: ถ้าผู้ใช้เปลี่ยน Check-in แล้ววัน Check-out ปัจจุบันมันดัน "เกิดก่อน" Check-in ให้ล้างค่า Check-out ทิ้งเลย
                         if (checkOut && e.target.value >= checkOut) {
                           setCheckOut("");
+                        } else {
+                          handleDatechange(e.target.value, checkOut);
                         }
                       }}
                       className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
@@ -263,9 +276,7 @@ export function GuestInfoPage() {
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-gray-600">Check-out</span>
-                  <span className="font-medium text-gray-900">
-                    {checkOutPrev || checkOut}
-                  </span>
+                  <span className="font-medium text-gray-900">{checkOut}</span>
                   {/* ฝั่งขวา: กล่องแสดงวันที่ + ไอคอน (ครอบ relative ไว้) */}
                   <div className="relative flex items-center gap-2 cursor-pointer group">
                     {/* 1. สิ่งที่มองเห็น (ข้อความวันที่ + ไอคอน) */}
@@ -275,10 +286,12 @@ export function GuestInfoPage() {
                     {/* 2. สิ่งที่ซ่อนอยู่ (Input Date ตัวจริงที่โปร่งใส 100%) */}
                     <input
                       type="date"
-                      // วัน Check-out ควรเริ่มเลือกได้อย่างน้อยคือ "วันถัดจาก Check-in" หรือ "วันนี้"
                       min={checkIn ? getNextDay(checkIn) : tomorrow}
                       value={checkOut}
-                      onChange={(e) => setCheckOut(e.target.value)}
+                      onChange={(e) => {
+                        handleDatechange(checkIn, e.target.value);
+                      }}
+                      // คลาสไม้ตาย: absolute ให้มันทับข้อความ/ไอคอนข้างบน และ opacity-0 เพื่อซ่อนให้ล่องหน
                       className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                     />
                   </div>
