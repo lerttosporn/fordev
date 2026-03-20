@@ -65,7 +65,7 @@ export interface Room {
 
 export interface RoomType {
   id: string;
-  name: RoomTypeName;
+  name: RoomTypeName;       
   description: string;
   sizeSqM: number;
   baseGuests: number;

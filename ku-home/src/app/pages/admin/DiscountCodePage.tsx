@@ -1,11 +1,22 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import {
-  ChevronLeft, Tag, Plus, Copy, Check, Trash2, Calendar,
-  Percent, DollarSign, ToggleLeft, ToggleRight, Search, X,
+  ChevronLeft,
+  Tag,
+  Plus,
+  Copy,
+  Check,
+  Trash2,
+  Calendar,
+  Percent,
+  DollarSign,
+  ToggleLeft,
+  ToggleRight,
+  Search,
+  X,
 } from "lucide-react";
 import { toast } from "sonner";
-import { DiscountCode } from "../../../models/Payment.ts";
+import { DiscountCode } from "../../../models/payment.ts";
 
 // ─── Mock data ────────────────────────────────────────────────────────────────
 const MOCK_CODES: DiscountCode[] = [
@@ -50,7 +61,9 @@ function isExpired(validUntil: string) {
 
 function formatDate(d: string) {
   return new Date(d).toLocaleDateString("th-TH", {
-    day: "numeric", month: "short", year: "numeric",
+    day: "numeric",
+    month: "short",
+    year: "numeric",
   });
 }
 
@@ -61,26 +74,38 @@ interface CreateModalProps {
 }
 
 function CreateModal({ onClose, onSave }: CreateModalProps) {
+  const todayStr = today();
   const [form, setForm] = useState({
     code: "",
     type: "percent" as "percent" | "amount",
     discountPercent: "",
     discountAmount: "",
-    validFrom: today(),
+    validFrom: todayStr,
     validUntil: "",
     isActive: true,
   });
   const [error, setError] = useState("");
 
-  const update = (patch: Partial<typeof form>) => setForm(f => ({ ...f, ...patch }));
+  const update = (patch: Partial<typeof form>) =>
+    setForm((f) => ({ ...f, ...patch }));
 
   const handleSubmit = () => {
     if (!form.code.trim()) return setError("กรุณากรอกรหัสส่วนลด");
+    if (!form.validFrom) return setError("กรุณาระบุวันที่เริ่มใช้งาน");
     if (!form.validUntil) return setError("กรุณาระบุวันที่หมดอายุ");
-    if (form.validUntil <= form.validFrom) return setError("วันหมดอายุต้องมาหลังวันที่สร้าง");
-    if (form.type === "percent" && (!form.discountPercent || +form.discountPercent <= 0 || +form.discountPercent > 100))
+    if (form.validUntil <= form.validFrom)
+      return setError("วันหมดอายุต้องมาหลังวันที่เริ่มใช้งาน");
+    if (
+      form.type === "percent" &&
+      (!form.discountPercent ||
+        +form.discountPercent <= 0 ||
+        +form.discountPercent > 100)
+    )
       return setError("กรุณากรอกเปอร์เซ็นต์ส่วนลด 1–100");
-    if (form.type === "amount" && (!form.discountAmount || +form.discountAmount <= 0))
+    if (
+      form.type === "amount" &&
+      (!form.discountAmount || +form.discountAmount <= 0)
+    )
       return setError("กรุณากรอกจำนวนเงินส่วนลด");
 
     setError("");
@@ -105,9 +130,14 @@ function CreateModal({ onClose, onSave }: CreateModalProps) {
             <div className="w-9 h-9 bg-white/20 rounded-xl flex items-center justify-center">
               <Tag className="w-5 h-5 text-white" />
             </div>
-            <h2 className="text-white font-bold text-lg">สร้างรหัสส่วนลดใหม่</h2>
+            <h2 className="text-white font-bold text-lg">
+              สร้างรหัสส่วนลดใหม่
+            </h2>
           </div>
-          <button onClick={onClose} className="text-white/70 hover:text-white transition-colors">
+          <button
+            onClick={onClose}
+            className="text-white/70 hover:text-white transition-colors"
+          >
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -121,7 +151,7 @@ function CreateModal({ onClose, onSave }: CreateModalProps) {
             <input
               type="text"
               value={form.code}
-              onChange={e => update({ code: e.target.value.toUpperCase() })}
+              onChange={(e) => update({ code: e.target.value.toUpperCase() })}
               placeholder="เช่น SUMMER2025"
               className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm font-mono uppercase focus:ring-2 focus:ring-[#006b54] outline-none tracking-widest"
             />
@@ -169,8 +199,12 @@ function CreateModal({ onClose, onSave }: CreateModalProps) {
                 type="number"
                 min={1}
                 max={form.type === "percent" ? 100 : undefined}
-                value={form.type === "percent" ? form.discountPercent : form.discountAmount}
-                onChange={e =>
+                value={
+                  form.type === "percent"
+                    ? form.discountPercent
+                    : form.discountAmount
+                }
+                onChange={(e) =>
                   form.type === "percent"
                     ? update({ discountPercent: e.target.value })
                     : update({ discountAmount: e.target.value })
@@ -181,19 +215,25 @@ function CreateModal({ onClose, onSave }: CreateModalProps) {
             </div>
           </div>
 
-          {/* Dates */}
+          {/* Dates — both editable */}
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">
-                <Calendar className="w-3 h-3 inline mr-1" /> วันที่สร้าง
+                <Calendar className="w-3 h-3 inline mr-1" /> วันที่เริ่มใช้งาน *
               </label>
               <input
                 type="date"
+                min={today()}
                 value={form.validFrom}
-                readOnly
-                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm bg-gray-50 text-gray-400 cursor-not-allowed outline-none"
+                onChange={(e) => {
+                  update({ validFrom: e.target.value });
+                  // ถ้า validUntil น้อยกว่า validFrom ที่เลือกใหม่ ให้ล้างค่า
+                  if (form.validUntil && e.target.value >= form.validUntil) {
+                    update({ validFrom: e.target.value, validUntil: "" });
+                  }
+                }}
+                className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-[#006b54] outline-none"
               />
-              <p className="text-[10px] text-gray-400 mt-1">กำหนดเป็นวันปัจจุบัน</p>
             </div>
             <div>
               <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">
@@ -201,9 +241,9 @@ function CreateModal({ onClose, onSave }: CreateModalProps) {
               </label>
               <input
                 type="date"
-                min={today()}
+                min={form.validFrom || today()}
                 value={form.validUntil}
-                onChange={e => update({ validUntil: e.target.value })}
+                onChange={(e) => update({ validUntil: e.target.value })}
                 className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-[#006b54] outline-none"
               />
             </div>
@@ -212,8 +252,12 @@ function CreateModal({ onClose, onSave }: CreateModalProps) {
           {/* Active toggle */}
           <div className="flex items-center justify-between bg-gray-50 rounded-xl px-4 py-3">
             <div>
-              <p className="text-sm font-semibold text-gray-800">เปิดใช้งานทันที</p>
-              <p className="text-xs text-gray-500">โค้ดจะสามารถใช้ได้ทันทีหลังสร้าง</p>
+              <p className="text-sm font-semibold text-gray-800">
+                เปิดใช้งานทันที
+              </p>
+              <p className="text-xs text-gray-500">
+                โค้ดจะสามารถใช้ได้ทันทีหลังสร้าง
+              </p>
             </div>
             <button
               onClick={() => update({ isActive: !form.isActive })}
@@ -279,12 +323,11 @@ function CodeRow({
   const statusLabel = expired
     ? { text: "หมดอายุ", cls: "bg-gray-100 text-gray-500" }
     : code.isActive
-    ? { text: "ใช้งานได้", cls: "bg-green-100 text-green-700" }
-    : { text: "ปิดใช้งาน", cls: "bg-orange-100 text-orange-700" };
+      ? { text: "ใช้งานได้", cls: "bg-green-100 text-green-700" }
+      : { text: "ปิดใช้งาน", cls: "bg-orange-100 text-orange-700" };
 
   return (
     <tr className="border-b border-gray-50 hover:bg-gray-50/60 transition-colors">
-      {/* Code */}
       <td className="px-5 py-4">
         <div className="flex items-center gap-2">
           <span className="font-mono font-bold text-gray-900 tracking-widest text-sm bg-gray-100 px-3 py-1.5 rounded-lg">
@@ -295,50 +338,57 @@ function CodeRow({
             className="p-1.5 rounded-lg text-gray-400 hover:text-[#006b54] hover:bg-[#006b54]/5 transition-colors"
             title="คัดลอก"
           >
-            {copied ? <Check className="w-3.5 h-3.5 text-green-600" /> : <Copy className="w-3.5 h-3.5" />}
+            {copied ? (
+              <Check className="w-3.5 h-3.5 text-green-600" />
+            ) : (
+              <Copy className="w-3.5 h-3.5" />
+            )}
           </button>
         </div>
       </td>
 
-      {/* Discount */}
       <td className="px-5 py-4">
         <div className="flex items-center gap-1.5">
           {code.discountPercent != null ? (
             <>
               <Percent className="w-3.5 h-3.5 text-[#006b54]" />
-              <span className="font-bold text-[#006b54]">{code.discountPercent}%</span>
+              <span className="font-bold text-[#006b54]">
+                {code.discountPercent}%
+              </span>
             </>
           ) : (
-            <>
-              <span className="text-sm font-bold text-[#006b54]">฿{code.discountAmount?.toLocaleString()}</span>
-            </>
+            <span className="text-sm font-bold text-[#006b54]">
+              ฿{code.discountAmount?.toLocaleString()}
+            </span>
           )}
         </div>
       </td>
 
-      {/* Dates */}
       <td className="px-5 py-4 text-sm text-gray-600 hidden md:table-cell">
         {formatDate(code.validFrom)}
       </td>
       <td className="px-5 py-4 text-sm hidden md:table-cell">
-        <span className={expired ? "text-red-500 font-medium" : "text-gray-600"}>
+        <span
+          className={expired ? "text-red-500 font-medium" : "text-gray-600"}
+        >
           {formatDate(code.validUntil)}
         </span>
       </td>
 
-      {/* Usage */}
       <td className="px-5 py-4 hidden lg:table-cell">
-        <span className="text-sm text-gray-500">{code.usageCount ?? 0} ครั้ง</span>
+        <span className="text-sm text-gray-500">
+          {code.usageCount ?? 0} ครั้ง
+        </span>
       </td>
 
-      {/* Status */}
       <td className="px-5 py-4">
-        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${statusLabel.cls}`}>
+        <span
+          className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${statusLabel.cls}`}
+        >
           {statusLabel.text}
         </span>
       </td>
 
-      {/* Actions */}
       <td className="px-5 py-4">
         <div className="flex items-center gap-1">
           {!expired && (
@@ -347,9 +397,11 @@ function CodeRow({
               className="p-1.5 rounded-lg text-gray-400 hover:text-[#006b54] hover:bg-[#006b54]/5 transition-colors"
               title={code.isActive ? "ปิดใช้งาน" : "เปิดใช้งาน"}
             >
-              {code.isActive
-                ? <ToggleRight className="w-5 h-5 text-[#006b54]" />
-                : <ToggleLeft className="w-5 h-5" />}
+              {code.isActive ? (
+                <ToggleRight className="w-5 h-5 text-[#006b54]" />
+              ) : (
+                <ToggleLeft className="w-5 h-5" />
+              )}
             </button>
           )}
           <button
@@ -370,11 +422,14 @@ export function DiscountCodePage() {
   const [codes, setCodes] = useState<DiscountCode[]>(MOCK_CODES);
   const [showModal, setShowModal] = useState(false);
   const [search, setSearch] = useState("");
-  const [filter, setFilter] = useState<"all" | "active" | "inactive" | "expired">("all");
+  const [filter, setFilter] = useState<
+    "all" | "active" | "inactive" | "expired"
+  >("all");
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
-  const filtered = codes.filter(c => {
-    const matchSearch = !search || c.code.toLowerCase().includes(search.toLowerCase());
+  const filtered = codes.filter((c) => {
+    const matchSearch =
+      !search || c.code.toLowerCase().includes(search.toLowerCase());
     const expired = isExpired(c.validUntil);
     const matchFilter =
       filter === "all" ||
@@ -385,7 +440,7 @@ export function DiscountCodePage() {
   });
 
   const handleSave = (newCode: Omit<DiscountCode, "id" | "usageCount">) => {
-    setCodes(prev => [
+    setCodes((prev) => [
       { ...newCode, id: String(Date.now()), usageCount: 0 },
       ...prev,
     ]);
@@ -394,18 +449,22 @@ export function DiscountCodePage() {
   };
 
   const handleToggle = (id: string) => {
-    setCodes(prev => prev.map(c => c.id === id ? { ...c, isActive: !c.isActive } : c));
+    setCodes((prev) =>
+      prev.map((c) => (c.id === id ? { ...c, isActive: !c.isActive } : c)),
+    );
   };
 
   const handleDelete = (id: string) => {
-    const code = codes.find(c => c.id === id);
-    setCodes(prev => prev.filter(c => c.id !== id));
+    const code = codes.find((c) => c.id === id);
+    setCodes((prev) => prev.filter((c) => c.id !== id));
     setDeleteTarget(null);
     toast.success(`ลบรหัส "${code?.code}" แล้ว`);
   };
 
-  const activeCount = codes.filter(c => c.isActive && !isExpired(c.validUntil)).length;
-  const expiredCount = codes.filter(c => isExpired(c.validUntil)).length;
+  const activeCount = codes.filter(
+    (c) => c.isActive && !isExpired(c.validUntil),
+  ).length;
+  const expiredCount = codes.filter((c) => isExpired(c.validUntil)).length;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -423,7 +482,9 @@ export function DiscountCodePage() {
               <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
                 <Tag className="w-6 h-6 text-[#006b54]" /> รหัสส่วนลด
               </h1>
-              <p className="text-sm text-gray-500 mt-0.5">สร้างและจัดการรหัสส่วนลดสำหรับลูกค้า</p>
+              <p className="text-sm text-gray-500 mt-0.5">
+                สร้างและจัดการรหัสส่วนลดสำหรับลูกค้า
+              </p>
             </div>
             <button
               onClick={() => setShowModal(true)}
@@ -436,16 +497,28 @@ export function DiscountCodePage() {
           {/* Stats */}
           <div className="grid grid-cols-3 gap-3 mt-4">
             <div className="bg-gray-50 rounded-xl px-4 py-3 border border-gray-200">
-              <p className="text-xs text-gray-500 uppercase font-semibold">ทั้งหมด</p>
-              <p className="text-2xl font-bold text-gray-900 mt-0.5">{codes.length}</p>
+              <p className="text-xs text-gray-500 uppercase font-semibold">
+                ทั้งหมด
+              </p>
+              <p className="text-2xl font-bold text-gray-900 mt-0.5">
+                {codes.length}
+              </p>
             </div>
             <div className="bg-green-50 rounded-xl px-4 py-3 border border-green-200">
-              <p className="text-xs text-green-600 uppercase font-semibold">ใช้งานได้</p>
-              <p className="text-2xl font-bold text-green-700 mt-0.5">{activeCount}</p>
+              <p className="text-xs text-green-600 uppercase font-semibold">
+                ใช้งานได้
+              </p>
+              <p className="text-2xl font-bold text-green-700 mt-0.5">
+                {activeCount}
+              </p>
             </div>
             <div className="bg-gray-100 rounded-xl px-4 py-3 border border-gray-200">
-              <p className="text-xs text-gray-500 uppercase font-semibold">หมดอายุ</p>
-              <p className="text-2xl font-bold text-gray-500 mt-0.5">{expiredCount}</p>
+              <p className="text-xs text-gray-500 uppercase font-semibold">
+                หมดอายุ
+              </p>
+              <p className="text-2xl font-bold text-gray-500 mt-0.5">
+                {expiredCount}
+              </p>
             </div>
           </div>
         </div>
@@ -459,12 +532,12 @@ export function DiscountCodePage() {
             <input
               placeholder="ค้นหารหัสส่วนลด…"
               value={search}
-              onChange={e => setSearch(e.target.value)}
+              onChange={(e) => setSearch(e.target.value)}
               className="w-full pl-9 pr-4 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#006b54] outline-none"
             />
           </div>
           <div className="flex gap-2 flex-wrap">
-            {(["all", "active", "inactive", "expired"] as const).map(f => (
+            {(["all", "active", "inactive", "expired"] as const).map((f) => (
               <button
                 key={f}
                 onClick={() => setFilter(f)}
@@ -474,7 +547,14 @@ export function DiscountCodePage() {
                     : "bg-white text-gray-600 border-gray-200 hover:border-gray-300"
                 }`}
               >
-                {{ all: "ทั้งหมด", active: "ใช้งานได้", inactive: "ปิดใช้งาน", expired: "หมดอายุ" }[f]}
+                {
+                  {
+                    all: "ทั้งหมด",
+                    active: "ใช้งานได้",
+                    inactive: "ปิดใช้งาน",
+                    expired: "หมดอายุ",
+                  }[f]
+                }
               </button>
             ))}
           </div>
@@ -486,12 +566,24 @@ export function DiscountCodePage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-gray-100 bg-gray-50">
-                  <th className="text-left px-5 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wide">รหัส</th>
-                  <th className="text-left px-5 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wide">ส่วนลด</th>
-                  <th className="text-left px-5 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wide hidden md:table-cell">วันที่สร้าง</th>
-                  <th className="text-left px-5 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wide hidden md:table-cell">วันหมดอายุ</th>
-                  <th className="text-left px-5 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wide hidden lg:table-cell">การใช้งาน</th>
-                  <th className="text-left px-5 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wide">สถานะ</th>
+                  <th className="text-left px-5 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wide">
+                    รหัส
+                  </th>
+                  <th className="text-left px-5 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wide">
+                    ส่วนลด
+                  </th>
+                  <th className="text-left px-5 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wide hidden md:table-cell">
+                    วันเริ่มใช้งาน
+                  </th>
+                  <th className="text-left px-5 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wide hidden md:table-cell">
+                    วันหมดอายุ
+                  </th>
+                  <th className="text-left px-5 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wide hidden lg:table-cell">
+                    การใช้งาน
+                  </th>
+                  <th className="text-left px-5 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wide">
+                    สถานะ
+                  </th>
                   <th className="px-5 py-3.5" />
                 </tr>
               </thead>
@@ -504,12 +596,12 @@ export function DiscountCodePage() {
                     </td>
                   </tr>
                 ) : (
-                  filtered.map(code => (
+                  filtered.map((code) => (
                     <CodeRow
                       key={code.id}
                       code={code}
                       onToggle={handleToggle}
-                      onDelete={id => setDeleteTarget(id)}
+                      onDelete={(id) => setDeleteTarget(id)}
                     />
                   ))
                 )}
@@ -523,7 +615,9 @@ export function DiscountCodePage() {
       </div>
 
       {/* Create modal */}
-      {showModal && <CreateModal onClose={() => setShowModal(false)} onSave={handleSave} />}
+      {showModal && (
+        <CreateModal onClose={() => setShowModal(false)} onSave={handleSave} />
+      )}
 
       {/* Delete confirm */}
       {deleteTarget && (
@@ -532,11 +626,13 @@ export function DiscountCodePage() {
             <div className="w-14 h-14 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <Trash2 className="w-6 h-6 text-red-600" />
             </div>
-            <h3 className="text-lg font-bold text-gray-900 mb-1">ลบรหัสส่วนลด</h3>
+            <h3 className="text-lg font-bold text-gray-900 mb-1">
+              ลบรหัสส่วนลด
+            </h3>
             <p className="text-sm text-gray-500 mb-6">
               คุณแน่ใจหรือไม่? รหัส{" "}
               <strong className="font-mono">
-                {codes.find(c => c.id === deleteTarget)?.code}
+                {codes.find((c) => c.id === deleteTarget)?.code}
               </strong>{" "}
               จะถูกลบถาวร
             </p>
