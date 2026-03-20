@@ -20,7 +20,6 @@ import {
 } from 'lucide-react';
 import { Input } from "../../components/ui/input.tsx";
 import { toast } from 'sonner';
-import { ROOMS } from "../../data/rooms.ts";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type RoomStatus =

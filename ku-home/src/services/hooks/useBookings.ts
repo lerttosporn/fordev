@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { RoomType as RoomModel } from "../../models/Room.ts";
 import { calcNights, getNextDay, today, calcPrice } from "../../../utils/bookingUtils.ts";
+import { RoomType } from "../../models/index.ts";
 
 export interface BookingFormState {
   checkIn: string;
@@ -16,7 +16,7 @@ export interface PriceSummary {
   personnelTotal: number;
 }
 
-export function useBookingForm(room: RoomModel | null, initialState?: Partial<BookingFormState>) {
+export function useBookingForm(room: RoomType | null, initialState?: Partial<BookingFormState>) {
   const todayStr = today();
   const tomorrow = getNextDay(todayStr);
 

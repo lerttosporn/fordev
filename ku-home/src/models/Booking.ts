@@ -1,6 +1,8 @@
 // ─── Enums / Union Types ──────────────────────────────────────────────────────
 
-import { PaymentMethod, PaymentStatus } from "./Payment.ts";
+import { PaymentMethod, PaymentStatus } from "./index.ts";
+
+
 
 export type BookingStatus =
   | 'draft'

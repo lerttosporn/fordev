@@ -1,11 +1,10 @@
-import { useState } from "react";
 import { motion } from "motion/react";
 import { CalendarIcon, Coffee, BedDouble } from "lucide-react";
-import { RoomType as RoomModel } from "../../../models/Room.ts";
 import { BREAKFAST_PRICE, getNextDay, calcNights, today } from "../../../../utils/bookingUtils.ts";
+import { Room } from "../../../models/index.ts";
 
 interface BookingSummaryPanelProps {
-  room: RoomModel;
+  room: Room;
   checkIn: string;
   checkOut: string;
   guests: number;
@@ -54,10 +53,10 @@ export function BookingSummaryPanel({
         <img
           src={room.images?.[0] || ""}
           className="w-20 h-20 rounded-lg object-cover flex-shrink-0"
-          alt={room.name}
+          alt={room.roomType}
         />
         <div>
-          <h4 className="font-bold text-gray-900">{room.name}</h4>
+          <h4 className="font-bold text-gray-900">{room.roomType}</h4>
           <p className="text-sm text-gray-500">1 Bedroom, {room.sizeSqM} sq.m.</p>
         </div>
       </div>

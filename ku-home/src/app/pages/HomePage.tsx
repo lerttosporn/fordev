@@ -2,8 +2,7 @@ import { motion } from "motion/react";
 import { useState, forwardRef, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Calendar, Users, ArrowRight, Train, GraduationCap, MapPin, CheckCircle2 } from "lucide-react";
-import { ROOMS } from "../data/rooms.ts";
-
+import { ROOMS } from "../data/roomsDataType.ts";
 export function HomePage() {
 
   const {hash} = useLocation();

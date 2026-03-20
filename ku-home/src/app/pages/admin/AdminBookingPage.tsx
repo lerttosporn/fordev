@@ -22,7 +22,7 @@ import {
   DollarSign,
   Repeat,
 } from 'lucide-react';
-import { ROOMS } from '../../data/rooms.ts';
+import { ROOMS } from "../../data/roomsDataType.ts";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 type BookingMode = 'group' | 'monthly';

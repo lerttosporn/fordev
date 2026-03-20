@@ -1,5 +1,5 @@
 import { localUrl, projectId } from '../../utils/supabase/info.tsx';
-import { BookingStatus, BookingType, CreateBookingPayload } from "../models/Booking.ts";
+import { BookingStatus, BookingType, CreateBookingPayload } from "../models/index.ts";
 
 export interface Booking {
     id: string;

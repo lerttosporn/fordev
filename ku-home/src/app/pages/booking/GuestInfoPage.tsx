@@ -5,7 +5,7 @@ import { Upload, User, Mail, Phone, ChevronRight } from "lucide-react";
 import { useState } from "react";
 import { motion } from "motion/react";
 import { today, getNextDay, calcNights } from "../../../../utils/bookingUtils.ts";
-import { ROOMS } from "../../data/rooms.ts";
+import { ROOMS } from "../../data/roomsDataType.ts";
 
 const TITLES = ["Mr.", "Ms.", "Mrs.", "Dr."];
 

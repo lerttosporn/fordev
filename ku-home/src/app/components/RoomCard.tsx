@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { ArrowRight, GraduationCap } from "lucide-react";
-import { RoomType } from "../../models/Room.ts";
+import {  RoomType } from "../../models/index.ts";
 
 interface RoomCardProps {
   room: RoomType;

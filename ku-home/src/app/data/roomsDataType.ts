@@ -1,6 +1,8 @@
 // Re-export RoomType as the canonical room type for this app
-export type { RoomType as RoomModel, RoomRates } from "../../models/Room.ts";
-import { RoomType } from "../../models/Room.ts";
+
+import { RoomType } from "../../models/index.ts";
+
+
 
 export const ROOMS: RoomType[] = [
   {

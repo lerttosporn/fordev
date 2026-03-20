@@ -1,10 +1,10 @@
 import { Link } from "react-router-dom";
 import { BedDouble, Coffee } from "lucide-react";
-import { RoomType as RoomModel } from "../../models/Room.ts";
 import { BREAKFAST_PRICE } from "../../../utils/bookingUtils.ts";
+import { RoomType } from "../../models/index.ts";
 
 interface BookingSidebarProps {
-  room: RoomModel;
+  room: RoomType;
   checkIn: string;
   checkOut: string;
   guests: number;

@@ -1,5 +1,5 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { RoomModel } from "../data/rooms.ts";
+import  { createContext, useContext, useState, ReactNode } from 'react';
+import { RoomType } from "../../models/index.ts";
 
 interface DateRange {
   from: Date | undefined;
@@ -27,7 +27,7 @@ interface BillingEntity {
 }
 
 interface BookingState {
-  selectedRoom: RoomModel | null;
+  selectedRoom: RoomType | null;
   dateRange: DateRange;
   guests: { adults: number; children: number };
   guestDetails: GuestDetails;

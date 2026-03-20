@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "motion/react";
 import { Link, useSearchParams } from "react-router-dom";
-import { ROOMS } from "../data/rooms.ts";
 import {
   Users,
   Maximize,
@@ -14,6 +13,7 @@ import {
 import { Button } from "../components/ui/button.tsx";
 import { Badge } from "../components/ui/badge.tsx";
 import { Card } from "../components/ui/card.tsx";
+import { ROOMS } from "../data/roomsDataType.ts";
 
 export function SearchResultsPage() {
   const [searchParams] = useSearchParams();

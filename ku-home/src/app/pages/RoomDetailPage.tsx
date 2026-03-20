@@ -17,7 +17,7 @@ import {
   BedDouble,
   Armchair,
 } from "lucide-react";
-import { ROOMS } from "../data/rooms.ts";
+import { ROOMS } from "../data/roomsDataType.ts";
 
 export function RoomDetailPage() {
   const { id } = useParams();
