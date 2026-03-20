@@ -7,6 +7,8 @@ import {
   Calendar,
   Wrench,
   SquarePen,
+  QrCode,
+  Tag,
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext.tsx";
 
@@ -20,7 +22,7 @@ export function AdminInstructions() {
       description:
         "View room status grid, manage bookings with check-in/check-out functionality",
       link: "/admin/dashboard",
-      color: "bg-blue-50 text-blue-600",
+      color: "bg-blue-50 text-blue-800",
     },
     {
       title: "Housekeeping",
@@ -28,7 +30,7 @@ export function AdminInstructions() {
       description:
         "Mobile-first module with photo uploads, inventory tracking, and room cleaning status",
       link: "/admin/housekeeping",
-      color: "bg-green-50 text-green-600",
+      color: "bg-amber-50 text-amber-600",
     },
     {
       title: "Reports & Analytics",
@@ -36,21 +38,28 @@ export function AdminInstructions() {
       description:
         "Comprehensive reports with data visualization for occupancy, revenue, and performance metrics",
       link: "/admin/reports",
-      color: "bg-purple-50 text-purple-600",
+      color: "bg-purple-100 text-purple-800",
     },
     {
       title: "New Booking",
-      icon: SquarePen ,
+      icon: SquarePen,
       description: "Create group (5+ rooms) or monthly bookings for customers",
       link: "/admin/booking",
-      color: "bg-orange-50 text-orange-600",
+      color: "bg-green-50 text-green-800",
     },
     {
       title: "User Management",
       icon: Users,
-      description: "Create group (5+ rooms) or monthly bookings for customers",
+      description: "Manage staff accounts, roles, and access permissions",
       link: "/admin/users",
-      color: "bg-orange-50 text-orange-600",
+      color: "bg-pink-50 text-pink-800",
+    },
+    {
+      title: "Discount Codes",
+      icon: Tag,
+      description: "Create and manage promotional codes with expiry dates",
+      link: "/admin/discounts",
+      color: "bg-orange-50 text-orange-700",
     },
   ];
 

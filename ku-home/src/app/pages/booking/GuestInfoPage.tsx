@@ -1,86 +1,41 @@
-import { Link, useLocation, useParams } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { BookingSteps } from "../../components/BookingSteps.tsx";
-import {
-  Upload,
-  User,
-  Mail,
-  Phone,
-  CreditCard,
-  ChevronRight,
-  Coffee,
-  BedDouble,
-  CalendarIcon,
-} from "lucide-react";
-import {  useState } from "react";
+import { BookingSummaryPanel } from "../../components/booking/BookingSummaryPanel.tsx";
+import { Upload, User, Mail, Phone, ChevronRight } from "lucide-react";
+import { useState } from "react";
 import { motion } from "motion/react";
+import { today, getNextDay, calcNights } from "../../../../utils/bookingUtils.ts";
+import { ROOMS } from "../../data/rooms.ts";
 
-const BREAKFAST_PRICE_PER_PERSON = 150;
+const TITLES = ["Mr.", "Ms.", "Mrs.", "Dr."];
 
 export function GuestInfoPage() {
-  // const { id } = useParams();
-  const location = useLocation(); // 1. เรียกใช้ useLocation
-  const today = new Date().toISOString().split("T")[0];
-  const getNextDay = (dateString: string) => {
-    // ถ้าไม่มีค่าที่ส่งมา ให้ใช้วันนี้เป็นฐาน
-    const date = dateString ? new Date(dateString) : new Date();
-    // บวกเพิ่มไป 1 วัน
-    date.setDate(date.getDate() + 1);
-    // แปลงกลับเป็นฟอร์แมต YYYY-MM-DD
-    return date.toISOString().split("T")[0];
-  };
-  // 2. ดึงข้อมูลที่ส่งมาจากหน้า Room Detail
+  const location = useLocation();
+  const todayStr = today();
 
   const {
-    room,
-    checkInPrev = today,
-    checkOutPrev = getNextDay(today),
-    calDateDiffPrev = 1,
+    room = ROOMS[2],
+    checkInPrev = todayStr,
+    checkOutPrev = getNextDay(todayStr),
     extraBedsPrev = 0,
     includeBreakfastPrev = false,
-    totalPricePrev =0,
     guestsPrev = 1,
   } = location.state || {};
-  const tomorrow = getNextDay(checkInPrev);
 
-  const [checkIn, setCheckIn] = useState(checkInPrev);
-  const [checkOut, setCheckOut] = useState(checkOutPrev);
+  // Booking state
+  const [checkIn, setCheckInRaw] = useState<string>(checkInPrev);
+  const [checkOut, setCheckOut] = useState<string>(checkOutPrev);
+  const [guests, setGuests] = useState<number>(guestsPrev);
+  const [extraBeds, setExtraBeds] = useState<number>(extraBedsPrev);
+  const [includeBreakfast, setIncludeBreakfast] = useState<boolean>(includeBreakfastPrev);
   const [isKuMember, setIsKuMember] = useState(false);
-  const [includeBreakfast, setIncludeBreakfast] = useState(
-    includeBreakfastPrev || false,
-  );
-  const [extraBeds, setExtraBeds] = useState(extraBedsPrev);
-  const [guests, setGuests] = useState((guestsPrev as number));
 
-  const [calDateDiff, setCalDateDiff] = useState(
-    calDateDiffPrev,
-  );
-  // const [propsPrev, setPropsPrev] = useState(location.state || {});
-
-  // 3. วันพรุ่งนี้ (กรณีที่ยังไม่ได้เลือก Check-in)
-  const handleDatechange = (newCheckIn: string, newCheckOut: string) => {
-    const calDateDiff = (start: string, end: string) => {
-      const startDate = new Date(start);
-      const endDate = new Date(end);
-      const diffTime = endDate.getTime() - startDate.getTime();
-      return Math.ceil(diffTime / (1000 * 60 * 60 * 24)); // คืนค่าเป็นจำนวนคืน
-    };
-    setCheckIn(newCheckIn);
-    setCheckOut(newCheckOut);
-    setCalDateDiff(calDateDiff(newCheckIn, newCheckOut));
+  const setCheckIn = (val: string) => {
+    setCheckInRaw(val);
+    if (checkOut && val >= checkOut) setCheckOut("");
   };
-  console.log("Received in GuestInfoPage:", {
-    room,
-    checkInPrev,
-    checkIn,
-    checkOutPrev,
-    checkOut,
-    calDateDiffPrev,
-    calDateDiff,
-    extraBedsPrev,
-    includeBreakfastPrev,
-    totalPricePrev,
-    guestsPrev,
-  });
+
+  const nights = calcNights(checkIn, checkOut) || 1;
 
   return (
     <div className="bg-gray-50 min-h-screen pb-20">
@@ -88,134 +43,11 @@ export function GuestInfoPage() {
 
       <div className="max-w-6xl mx-auto px-4">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main Form */}
+          {/* Main form */}
           <div className="lg:col-span-2 space-y-6">
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
-                <User className="w-6 h-6 mr-3 text-[#006b54]" />
-                Guest Details
-              </h2>
+            <GuestDetailsForm />
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">
-                    Title
-                  </label>
-                  <select className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#006b54] focus:border-transparent outline-none transition-all">
-                    <option>Mr.</option>
-                    <option>Ms.</option>
-                    <option>Mrs.</option>
-                    <option>Dr.</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">
-                    Nationality
-                  </label>
-                  <input
-                    type="text"
-                    className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#006b54] focus:border-transparent outline-none transition-all"
-                    placeholder="Thai"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">
-                    First Name
-                  </label>
-                  <input
-                    type="text"
-                    className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#006b54] focus:border-transparent outline-none transition-all"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">
-                    Last Name
-                  </label>
-                  <input
-                    type="text"
-                    className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#006b54] focus:border-transparent outline-none transition-all"
-                  />
-                </div>
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-bold text-gray-700 mb-2">
-                    ID Card / Passport Number
-                  </label>
-                  <input
-                    type="text"
-                    className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#006b54] focus:border-transparent outline-none transition-all"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">
-                    <Mail className="w-4 h-4 inline mr-1" /> Email Address
-                  </label>
-                  <input
-                    type="email"
-                    className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#006b54] focus:border-transparent outline-none transition-all"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">
-                    <Phone className="w-4 h-4 inline mr-1" /> Phone Number
-                  </label>
-                  <input
-                    type="tel"
-                    className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#006b54] focus:border-transparent outline-none transition-all"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* KU Member Toggle */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
-              <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center">
-                <GraduationCapIcon className="w-6 h-6 mr-3 text-[#006b54]" />
-                KU Member Discount
-              </h2>
-              <div className="flex items-center mb-4">
-                <button
-                  onClick={() => setIsKuMember(!isKuMember)}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${isKuMember ? "bg-[#006b54]" : "bg-gray-200"}`}
-                >
-                  <span
-                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${isKuMember ? "translate-x-6" : "translate-x-1"}`}
-                  />
-                </button>
-                <span className="ml-3 text-sm font-medium text-gray-900">
-                  I am a KU Student or Staff Member{" "}
-                  <span className="text-[#006b54] font-bold">
-                    (Eligible for Special Rate)
-                  </span>
-                </span>
-              </div>
-
-              {isKuMember && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: "auto", opacity: 1 }}
-                  className="bg-gray-50 rounded-xl p-6 border border-dashed border-gray-300"
-                >
-                  <label className="block text-sm font-bold text-gray-700 mb-3">
-                    Upload KU ID Card / Staff ID
-                  </label>
-                  <div className="flex items-center justify-center w-full">
-                    <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-white hover:bg-gray-50 transition-colors">
-                      <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                        <Upload className="w-8 h-8 mb-3 text-gray-400" />
-                        <p className="mb-2 text-sm text-gray-500">
-                          <span className="font-semibold">Click to upload</span>{" "}
-                          or drag and drop
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          PNG, JPG or PDF (MAX. 5MB)
-                        </p>
-                      </div>
-                      <input type="file" className="hidden" />
-                    </label>
-                  </div>
-                </motion.div>
-              )}
-            </div>
+            <KuMemberSection isKuMember={isKuMember} onToggle={() => setIsKuMember(!isKuMember)} />
 
             <div className="flex justify-end pt-4">
               <Link
@@ -227,272 +59,141 @@ export function GuestInfoPage() {
             </div>
           </div>
 
-          {/* Sidebar Summary */}
+          {/* Summary sidebar */}
           <div className="lg:col-span-1">
-            <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 sticky top-24">
-              <h3 className="text-lg font-bold text-gray-900 mb-4 pb-4 border-b border-gray-100">
-                Booking Summary
-              </h3>
-              {/* Room Info */}
-              <div className="flex items-start space-x-4 mb-4">
-                <img
-                  src="https://images.unsplash.com/photo-1763402578679-f6fba8bee3e8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=400"
-                  className="w-20 h-20 rounded-lg object-cover flex-shrink-0"
-                  alt="Room"
-                />
-                <div>
-                  <h4 className="font-bold text-gray-900">{room.name}</h4>
-                  <p className="text-sm text-gray-500">
-                    1 Bedroom, {room.sizeSqM} sq.m.
-                  </p>
-                </div>
-              </div>
-              {/* Stay Details */}
-              <div className="space-y-3 text-sm text-gray-600 mb-5">
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Check-in</span>
-                  <span className="font-medium text-gray-900">{checkIn}</span>
-                  {/* ฝั่งขวา: กล่องแสดงวันที่ + ไอคอน (ครอบ relative ไว้) */}
-                  <div className="relative flex items-center gap-2 cursor-pointer group">
-                    {/* 1. สิ่งที่มองเห็น (ข้อความวันที่ + ไอคอน) */}
-
-                    <CalendarIcon className="w-5 h-5 text-gray-400 group-hover:text-[#006b54] transition-colors" />
-
-                    {/* 2. สิ่งที่ซ่อนอยู่ (Input Date ตัวจริงที่โปร่งใส 100%) */}
-                    <input
-                      type="date"
-                      min={today}
-                      value={checkIn}
-                      onChange={(e) => {
-                        if (checkOut && e.target.value >= checkOut) {
-                          setCheckOut("");
-                        } else {
-                          handleDatechange(e.target.value, checkOut);
-                        }
-                      }}
-                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                    />
-                  </div>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Check-out</span>
-                  <span className="font-medium text-gray-900">{checkOut}</span>
-                  {/* ฝั่งขวา: กล่องแสดงวันที่ + ไอคอน (ครอบ relative ไว้) */}
-                  <div className="relative flex items-center gap-2 cursor-pointer group">
-                    {/* 1. สิ่งที่มองเห็น (ข้อความวันที่ + ไอคอน) */}
-
-                    <CalendarIcon className="w-5 h-5 text-gray-400 group-hover:text-[#006b54] transition-colors" />
-
-                    {/* 2. สิ่งที่ซ่อนอยู่ (Input Date ตัวจริงที่โปร่งใส 100%) */}
-                    <input
-                      type="date"
-                      min={checkIn ? getNextDay(checkIn) : tomorrow}
-                      value={checkOut}
-                      onChange={(e) => {
-                        handleDatechange(checkIn, e.target.value);
-                      }}
-                      // คลาสไม้ตาย: absolute ให้มันทับข้อความ/ไอคอนข้างบน และ opacity-0 เพื่อซ่อนให้ล่องหน
-                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                    />
-                  </div>
-                </div>
-                <div className="flex justify-between">
-                  <span>Duration</span>
-                  <span className="font-medium text-gray-900">
-                    {calDateDiff} Nights
-                  </span>
-                </div>
-                <div className="flex justify-between items-center gap-2">
-                  <span>Guests</span>
-                  <span className="font-medium text-gray-900">
-                    <div className="flex items-center bg-white rounded-lg border border-gray-300 overflow-hidden">
-                      <button
-                        onClick={() =>
-                          setGuests((prev) => Math.max(1, prev - 1))
-                        }
-                        className={`px-3 py-1 text-gray-600 hover:bg-gray-100 ${guests === 1 ? "opacity-50 cursor-not-allowed" : ""}`}
-                        disabled={guests === 1}
-                      >
-                        -
-                      </button>
-                      <span className="px-2 font-medium text-gray-900 w-6 text-center">
-                        {guests}
-                      </span>
-                      <button
-                        onClick={() =>
-                          setGuests(Math.min(room.maxGuests, guests + 1))
-                        }
-                        className={`px-3 py-1 text-gray-600 hover:bg-gray-100 ${guests >= room.maxGuests ? "opacity-50 cursor-not-allowed" : ""}`}
-                        disabled={guests >= room.maxGuests}
-                      >
-                        +
-                      </button>
-                    </div>
-                  </span>
-                </div>
-              </div>
-              {/* ── Breakfast Checkbox ── */}
-              <div className="mb-5">
-                <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-3">
-                  Add-on Services
-                </p>
-                <label
-                  className={`flex items-start gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all ${
-                    includeBreakfast
-                      ? "border-[#006b54] bg-[#006b54]/5"
-                      : "border-gray-200 hover:border-gray-300"
-                  }`}
-                >
-                  <input
-                    type="checkbox"
-                    checked={includeBreakfast}
-                    onChange={(e) => setIncludeBreakfast(e.target.checked)}
-                    className="mt-0.5 w-4 h-4 accent-[#006b54] cursor-pointer flex-shrink-0"
-                  />
-                  <div className="flex-1">
-                    <div className="flex items-center gap-1.5">
-                      <Coffee className="w-4 h-4 text-[#006b54]" />
-                      <span className="text-sm font-semibold text-gray-900">
-                        Breakfast
-                      </span>
-                    </div>
-                    <p className="text-xs text-gray-500 mt-0.5">
-                      ฿{BREAKFAST_PRICE_PER_PERSON}/person/night · {guests}
-                      guests × {calDateDiff} nights
-                    </p>
-                  </div>
-                  <span
-                    className={`text-sm font-bold flex-shrink-0 ${includeBreakfast ? "text-[#006b54]" : "text-gray-400"}`}
-                  >
-                    +฿
-                    {(BREAKFAST_PRICE_PER_PERSON * 1 * 1).toLocaleString()}
-                  </span>
-                </label>
-              </div>
-              {/* Additional Option Box - Extra Bed */}
-              {room.maxExtraBeds > 0 && (
-                <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
-                  <div className="flex items-center justify-between mb-2">
-                    <label className="text-xs font-bold text-gray-700 uppercase flex items-center">
-                      <BedDouble className="w-4 h-4 mr-1 text-[#006b54]" />
-                      Extra Bed
-                    </label>
-                    <span className="text-xs text-[#006b54] font-bold">
-                      +{room.extraBedPrice} THB/night
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">
-                      Need extra bed?
-                    </span>
-                    <div className="flex items-center bg-white rounded-lg border border-gray-300 overflow-hidden">
-                      <button
-                        onClick={() => setExtraBeds(Math.max(0, extraBeds - 1))}
-                        className={`px-3 py-1 text-gray-600 hover:bg-gray-100 ${extraBeds === 0 ? "opacity-50 cursor-not-allowed" : ""}`}
-                        disabled={extraBeds === 0}
-                      >
-                        -
-                      </button>
-                      <span className="px-2 font-medium text-gray-900 w-6 text-center">
-                        {extraBeds}
-                      </span>
-                      <button
-                        onClick={() =>
-                          setExtraBeds(
-                            Math.min(room.maxExtraBeds, extraBeds + 1),
-                          )
-                        }
-                        className={`px-3 py-1 text-gray-600 hover:bg-gray-100 ${extraBeds >= room.maxExtraBeds ? "opacity-50 cursor-not-allowed" : ""}`}
-                        disabled={extraBeds >= room.maxExtraBeds}
-                      >
-                        +
-                      </button>
-                    </div>
-                  </div>
-                  {extraBeds > 0 && (
-                    <p className="text-xs text-gray-500 mt-2">
-                      Max {room.maxExtraBeds} extra bed(s) allowed.
-                    </p>
-                  )}
-                </div>
-              )}
-              <hr className="border-gray-100 mb-6" />
-
-              {/* Price Breakdown */}
-              <div className="bg-gray-50 rounded-xl p-4">
-                <div className="flex justify-between items-center mb-2 text-sm">
-                  <span className="text-gray-600">Room Rate</span>
-                  <span className="font-medium text-gray-900">
-                    ฿{room.rates.daily.general * calDateDiff}
-                    THB/night
-                  </span>
-                </div>
-
-                {isKuMember && (
-                  <div className="flex justify-between items-center mb-2 text-sm text-green-600">
-                    <span>KU Discount</span>
-                    <span>
-                      -฿
-                      {(
-                        (room.rates.daily.general -
-                          room.rates.daily.personnel) *
-                        calDateDiff
-                      ).toLocaleString()}
-                      THB/night
-                    </span>
-                  </div>
-                )}
-                {includeBreakfast && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -4 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="flex justify-between items-center mb-2 text-sm text-[#006b54]"
-                  >
-                    <span className="flex items-center gap-1">
-                      <Coffee className="w-3.5 h-3.5" /> Breakfast
-                    </span>
-                    <span>
-                      +฿
-                      {BREAKFAST_PRICE_PER_PERSON * guests * calDateDiff}
-                    </span>
-                  </motion.div>
-                )}
-                {extraBeds > 0 && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -4 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="flex justify-between items-center mb-2 text-sm text-[#006b54]"
-                  >
-                    <span className="flex items-center gap-1">
-                      <Coffee className="w-3.5 h-3.5" /> Extra Bed
-                    </span>
-                    <span>
-                      +฿
-                      {extraBeds * room.extraBedPrice * calDateDiff}
-                    </span>
-                  </motion.div>
-                )}
-                <div className="border-t border-gray-200 pt-3 mt-2 flex justify-between items-center">
-                  <span className="font-bold text-gray-900">Total</span>
-                  <span className="font-bold text-xl text-[#006b54]">
-                    ฿
-                    {(room.rates.daily.general -
-                      (isKuMember
-                        ? room.rates.daily.general - room.rates.daily.personnel
-                        : 0) +
-                      (extraBeds ? extraBeds * room.extraBedPrice : 0) +
-                      (includeBreakfast
-                        ? BREAKFAST_PRICE_PER_PERSON * guests
-                        : 0)) *
-                      calDateDiff}
-                    THB
-                  </span>
-                </div>
-              </div>
-            </div>
+            <BookingSummaryPanel
+              room={room}
+              checkIn={checkIn}
+              checkOut={checkOut}
+              guests={guests}
+              extraBeds={extraBeds}
+              includeBreakfast={includeBreakfast}
+              isKuMember={isKuMember}
+              onCheckInChange={setCheckIn}
+              onCheckOutChange={setCheckOut}
+              onGuestsChange={(delta) => setGuests((g) => Math.min(Math.max(1, g + delta), room.maxGuests))}
+              onExtraBedsChange={(delta) => setExtraBeds((e) => Math.min(Math.max(0, e + delta), room.maxExtraBeds))}
+              onBreakfastChange={setIncludeBreakfast}
+            />
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+// ── Sub-components ─────────────────────────────────────────────────────────
+
+function GuestDetailsForm() {
+  return (
+    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+      <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
+        <User className="w-6 h-6 mr-3 text-[#006b54]" />
+        Guest Details
+      </h2>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <SelectField label="Title" options={TITLES} />
+        <TextField label="Nationality" placeholder="Thai" />
+        <TextField label="First Name" />
+        <TextField label="Last Name" />
+        <div className="md:col-span-2">
+          <TextField label="ID Card / Passport Number" />
+        </div>
+        <TextField label="Email Address" icon={<Mail className="w-4 h-4 text-gray-400" />} type="email" />
+        <TextField label="Phone Number" icon={<Phone className="w-4 h-4 text-gray-400" />} type="tel" />
+      </div>
+    </div>
+  );
+}
+
+function KuMemberSection({ isKuMember, onToggle }: { isKuMember: boolean; onToggle: () => void }) {
+  return (
+    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+      <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center">
+        <GraduationCapIcon className="w-6 h-6 mr-3 text-[#006b54]" />
+        KU Member Discount
+      </h2>
+
+      <div className="flex items-center mb-4">
+        <button
+          onClick={onToggle}
+          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+            isKuMember ? "bg-[#006b54]" : "bg-gray-200"
+          }`}
+        >
+          <span
+            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+              isKuMember ? "translate-x-6" : "translate-x-1"
+            }`}
+          />
+        </button>
+        <span className="ml-3 text-sm font-medium text-gray-900">
+          I am a KU Student or Staff Member{" "}
+          <span className="text-[#006b54] font-bold">(Eligible for Special Rate)</span>
+        </span>
+      </div>
+
+      {isKuMember && (
+        <motion.div
+          initial={{ height: 0, opacity: 0 }}
+          animate={{ height: "auto", opacity: 1 }}
+          className="bg-gray-50 rounded-xl p-6 border border-dashed border-gray-300"
+        >
+          <label className="block text-sm font-bold text-gray-700 mb-3">Upload KU ID Card / Staff ID</label>
+          <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-white hover:bg-gray-50 transition-colors">
+            <div className="flex flex-col items-center justify-center pt-5 pb-6">
+              <Upload className="w-8 h-8 mb-3 text-gray-400" />
+              <p className="mb-2 text-sm text-gray-500">
+                <span className="font-semibold">Click to upload</span> or drag and drop
+              </p>
+              <p className="text-xs text-gray-500">PNG, JPG or PDF (MAX. 5MB)</p>
+            </div>
+            <input type="file" className="hidden" />
+          </label>
+        </motion.div>
+      )}
+    </div>
+  );
+}
+
+// ── Field helpers ──────────────────────────────────────────────────────────
+
+function TextField({
+  label,
+  placeholder,
+  type = "text",
+  icon,
+}: {
+  label: string;
+  placeholder?: string;
+  type?: string;
+  icon?: React.ReactNode;
+}) {
+  return (
+    <div>
+      <label className="block text-sm font-bold text-gray-700 mb-2">{label}</label>
+      <div className="relative">
+        {icon && <span className="absolute left-3 top-3">{icon}</span>}
+        <input
+          type={type}
+          placeholder={placeholder}
+          className={`w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#006b54] focus:border-transparent outline-none transition-all ${icon ? "pl-10" : ""}`}
+        />
+      </div>
+    </div>
+  );
+}
+
+function SelectField({ label, options }: { label: string; options: string[] }) {
+  return (
+    <div>
+      <label className="block text-sm font-bold text-gray-700 mb-2">{label}</label>
+      <select className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#006b54] focus:border-transparent outline-none transition-all">
+        {options.map((o) => (
+          <option key={o}>{o}</option>
+        ))}
+      </select>
     </div>
   );
 }
