@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useState, useEffect } from "react";
+import { useAuth } from "../../contexts/AuthContext.tsx";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import {
   BedDouble,
   Camera,
@@ -10,15 +10,15 @@ import {
   AlertCircle,
   Plus,
   Minus,
-} from 'lucide-react';
-import { Button } from '../../components/ui/button';
-import { Card } from '../../components/ui/card';
-import { Textarea } from '../../components/ui/textarea';
-import { Input } from '../../components/ui/input';
-import { Label } from '../../components/ui/label';
-import { Badge } from '../../components/ui/badge';
-import { projectId } from '/utils/supabase/info';
-import { toast } from 'sonner';
+} from "lucide-react";
+import { Button } from "../../components/ui/button.tsx";
+import { Card } from "../../components/ui/card.tsx";
+import { Textarea } from "../../components/ui/textarea.tsx";
+import { Input } from "../../components/ui/input.tsx";
+import { Label } from "../../components/ui/label.tsx";
+import { Badge } from "../../components/ui/badge.tsx";
+import { projectId } from "../../../../utils/supabase/info.tsx";
+import { toast } from "sonner";
 
 interface CheckedOutRoom {
   id: string;
@@ -32,7 +32,7 @@ interface InventoryItem {
   name: string;
   expected: number;
   actual: number;
-  status: 'ok' | 'missing' | 'damaged';
+  status: "ok" | "missing" | "damaged";
 }
 
 export function HousekeepingModule() {
@@ -45,23 +45,27 @@ export function HousekeepingModule() {
 
   // Cleaning form state
   const [photos, setPhotos] = useState<string[]>([]);
-  const [notes, setNotes] = useState('');
+  const [notes, setNotes] = useState("");
   const [inventory, setInventory] = useState<InventoryItem[]>([
-    { name: 'Blankets', expected: 2, actual: 2, status: 'ok' },
-    { name: 'Pillows', expected: 4, actual: 4, status: 'ok' },
-    { name: 'Towels (Bath)', expected: 2, actual: 2, status: 'ok' },
-    { name: 'Towels (Hand)', expected: 2, actual: 2, status: 'ok' },
-    { name: 'Shampoo', expected: 2, actual: 2, status: 'ok' },
-    { name: 'Drinking Water', expected: 4, actual: 4, status: 'ok' },
-    { name: 'Hangers', expected: 6, actual: 6, status: 'ok' },
-    { name: 'Remote Control', expected: 1, actual: 1, status: 'ok' },
+    { name: "Blankets", expected: 2, actual: 2, status: "ok" },
+    { name: "Pillows", expected: 4, actual: 4, status: "ok" },
+    { name: "Towels (Bath)", expected: 2, actual: 2, status: "ok" },
+    { name: "Towels (Hand)", expected: 2, actual: 2, status: "ok" },
+    { name: "Shampoo", expected: 2, actual: 2, status: "ok" },
+    { name: "Drinking Water", expected: 4, actual: 4, status: "ok" },
+    { name: "Hangers", expected: 6, actual: 6, status: "ok" },
+    { name: "Remote Control", expected: 1, actual: 1, status: "ok" },
   ]);
 
   // Check housekeeping access
   useEffect(() => {
-    if (!loading && (!user || !['admin', 'staff', 'housekeeping'].includes((user as any).role))) {
-      toast.error('Access denied: Housekeeping privileges required');
-      navigate('/');
+    if (
+      !loading &&
+      (!user ||
+        !["admin", "staff", "housekeeping"].includes((user as any).role))
+    ) {
+      toast.error("Access denied: Housekeeping privileges required");
+      navigate("/");
     }
   }, [user, loading, navigate]);
 
@@ -78,25 +82,25 @@ export function HousekeepingModule() {
       // Mock data for demonstration
       const mockRooms: CheckedOutRoom[] = [
         {
-          id: 'room-1',
-          roomNumber: 'S001',
-          roomType: 'Suite',
+          id: "room-1",
+          roomNumber: "S001",
+          roomType: "Suite",
           checkedOutAt: new Date(Date.now() - 3600000).toISOString(),
-          guests: [{ name: 'John Doe' }],
+          guests: [{ name: "John Doe" }],
         },
         {
-          id: 'room-2',
-          roomNumber: 'D005',
-          roomType: 'Deluxe',
+          id: "room-2",
+          roomNumber: "D005",
+          roomType: "Deluxe",
           checkedOutAt: new Date(Date.now() - 7200000).toISOString(),
-          guests: [{ name: 'Jane Smith' }],
+          guests: [{ name: "Jane Smith" }],
         },
         {
-          id: 'room-3',
-          roomNumber: 'S008',
-          roomType: 'Superior',
+          id: "room-3",
+          roomNumber: "S008",
+          roomType: "Superior",
           checkedOutAt: new Date(Date.now() - 1800000).toISOString(),
-          guests: [{ name: 'Bob Johnson' }],
+          guests: [{ name: "Bob Johnson" }],
         },
       ];
 
@@ -104,14 +108,14 @@ export function HousekeepingModule() {
 
       // If viewing a specific room, select it
       if (roomId) {
-        const room = mockRooms.find(r => r.id === roomId);
+        const room = mockRooms.find((r) => r.id === roomId);
         if (room) {
           setSelectedRoom(room);
         }
       }
     } catch (error) {
-      console.error('Error loading checked-out rooms:', error);
-      toast.error('Failed to load rooms');
+      console.error("Error loading checked-out rooms:", error);
+      toast.error("Failed to load rooms");
     } finally {
       setLoadingData(false);
     }
@@ -137,22 +141,23 @@ export function HousekeepingModule() {
   const updateInventoryCount = (index: number, delta: number) => {
     const updated = [...inventory];
     updated[index].actual = Math.max(0, updated[index].actual + delta);
-    
+
     // Update status based on count
     if (updated[index].actual === updated[index].expected) {
-      updated[index].status = 'ok';
+      updated[index].status = "ok";
     } else if (updated[index].actual < updated[index].expected) {
-      updated[index].status = 'missing';
+      updated[index].status = "missing";
     } else {
-      updated[index].status = 'ok';
+      updated[index].status = "ok";
     }
-    
+
     setInventory(updated);
   };
 
   const toggleDamaged = (index: number) => {
     const updated = [...inventory];
-    updated[index].status = updated[index].status === 'damaged' ? 'ok' : 'damaged';
+    updated[index].status =
+      updated[index].status === "damaged" ? "ok" : "damaged";
     setInventory(updated);
   };
 
@@ -163,32 +168,38 @@ export function HousekeepingModule() {
       const response = await fetch(
         `https://${projectId}.supabase.co/functions/v1/make-server-fb9ae70e/housekeeping/rooms/${selectedRoom.id}/clean`,
         {
-          method: 'POST',
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${accessToken}`,
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
           },
           body: JSON.stringify({
             photos,
             inventory,
             notes,
           }),
-        }
+        },
       );
 
       if (response.ok) {
-        toast.success('Room cleaning recorded successfully');
-        navigate('/admin/housekeeping');
+        toast.success("Room cleaning recorded successfully");
+        navigate("/admin/housekeeping");
         // Reset form
         setPhotos([]);
-        setNotes('');
-        setInventory(inventory.map(item => ({ ...item, actual: item.expected, status: 'ok' as const })));
+        setNotes("");
+        setInventory(
+          inventory.map((item) => ({
+            ...item,
+            actual: item.expected,
+            status: "ok" as const,
+          })),
+        );
       } else {
-        toast.error('Failed to record cleaning');
+        toast.error("Failed to record cleaning");
       }
     } catch (error) {
-      console.error('Error submitting cleaning record:', error);
-      toast.error('Submission error');
+      console.error("Error submitting cleaning record:", error);
+      toast.error("Submission error");
     }
   };
 
@@ -209,8 +220,20 @@ export function HousekeepingModule() {
       <div className="min-h-screen bg-gray-50 pb-20">
         <div className="bg-white border-b border-gray-200 sticky top-20 z-40">
           <div className="container mx-auto px-4 py-6">
-            <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Housekeeping</h1>
-            <p className="text-gray-600 mt-1">Checked-out rooms ready for cleaning</p>
+            {/* ── Back button top-left ── */}
+            <Link
+              to="/admin"
+              className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-[#006b54] font-medium mb-4 transition-colors"
+            >
+              <ChevronLeft className="w-4 h-4" />
+              Back to Admin Portal
+            </Link>
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
+              Housekeeping
+            </h1>
+            <p className="text-gray-600 mt-1">
+              Checked-out rooms ready for cleaning
+            </p>
           </div>
         </div>
 
@@ -218,8 +241,12 @@ export function HousekeepingModule() {
           {rooms.length === 0 ? (
             <Card className="p-12 text-center">
               <BedDouble className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-xl font-bold text-gray-900 mb-2">No rooms to clean</h3>
-              <p className="text-gray-600">All checked-out rooms have been cleaned</p>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">
+                No rooms to clean
+              </h3>
+              <p className="text-gray-600">
+                All checked-out rooms have been cleaned
+              </p>
             </Card>
           ) : (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -231,10 +258,17 @@ export function HousekeepingModule() {
                 >
                   <div className="flex items-start justify-between mb-4">
                     <div>
-                      <h3 className="text-xl font-bold text-gray-900">{room.roomNumber}</h3>
-                      <p className="text-sm text-gray-600">{room.roomType} Room</p>
+                      <h3 className="text-xl font-bold text-gray-900">
+                        {room.roomNumber}
+                      </h3>
+                      <p className="text-sm text-gray-600">
+                        {room.roomType} Room
+                      </p>
                     </div>
-                    <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-200">
+                    <Badge
+                      variant="outline"
+                      className="bg-orange-50 text-orange-700 border-orange-200"
+                    >
                       Needs Cleaning
                     </Badge>
                   </div>
@@ -243,7 +277,7 @@ export function HousekeepingModule() {
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-gray-600">Last Guest:</span>
                       <span className="font-medium text-gray-900">
-                        {room.guests?.[0]?.name || 'N/A'}
+                        {room.guests?.[0]?.name || "N/A"}
                       </span>
                     </div>
                     <div className="flex items-center justify-between text-sm">
@@ -281,7 +315,9 @@ export function HousekeepingModule() {
           <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
             Room {selectedRoom.roomNumber}
           </h1>
-          <p className="text-gray-600 mt-1">{selectedRoom.roomType} Room - Cleaning Checklist</p>
+          <p className="text-gray-600 mt-1">
+            {selectedRoom.roomType} Room - Cleaning Checklist
+          </p>
         </div>
       </div>
 
@@ -340,16 +376,18 @@ export function HousekeepingModule() {
               <div
                 key={index}
                 className={`flex items-center justify-between p-4 rounded-lg border-2 ${
-                  item.status === 'ok'
-                    ? 'border-green-200 bg-green-50'
-                    : item.status === 'missing'
-                    ? 'border-orange-200 bg-orange-50'
-                    : 'border-red-200 bg-red-50'
+                  item.status === "ok"
+                    ? "border-green-200 bg-green-50"
+                    : item.status === "missing"
+                      ? "border-orange-200 bg-orange-50"
+                      : "border-red-200 bg-red-50"
                 }`}
               >
                 <div className="flex-1">
                   <p className="font-semibold text-gray-900">{item.name}</p>
-                  <p className="text-sm text-gray-600">Expected: {item.expected}</p>
+                  <p className="text-sm text-gray-600">
+                    Expected: {item.expected}
+                  </p>
                 </div>
 
                 <div className="flex items-center gap-4">
@@ -362,7 +400,9 @@ export function HousekeepingModule() {
                     >
                       <Minus className="w-4 h-4" />
                     </Button>
-                    <span className="font-bold text-lg w-8 text-center">{item.actual}</span>
+                    <span className="font-bold text-lg w-8 text-center">
+                      {item.actual}
+                    </span>
                     <Button
                       size="sm"
                       variant="outline"
@@ -374,7 +414,9 @@ export function HousekeepingModule() {
 
                   <Button
                     size="sm"
-                    variant={item.status === 'damaged' ? 'destructive' : 'outline'}
+                    variant={
+                      item.status === "damaged" ? "destructive" : "outline"
+                    }
                     onClick={() => toggleDamaged(index)}
                   >
                     <AlertCircle className="w-4 h-4 mr-1" />
@@ -388,7 +430,9 @@ export function HousekeepingModule() {
 
         {/* Notes Section */}
         <Card className="p-6 mb-6">
-          <h2 className="text-xl font-bold text-gray-900 mb-4">Additional Notes</h2>
+          <h2 className="text-xl font-bold text-gray-900 mb-4">
+            Additional Notes
+          </h2>
           <Textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}

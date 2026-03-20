@@ -1,542 +1,627 @@
-import { useState, useEffect } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
-import { 
-  Search, 
-  BedDouble, 
-  CheckCircle2, 
-  XCircle, 
-  Wrench, 
+import { useState, useEffect, useMemo } from 'react';
+import { useAuth } from "../../contexts/AuthContext.tsx";
+import { useNavigate, Link } from 'react-router-dom';
+import {
+  Search,
+  BedDouble,
+  CheckCircle2,
+  XCircle,
+  Wrench,
   DoorOpen,
   Users,
   Calendar,
-  DollarSign,
-  Bell
+  ChevronLeft,
+  LogIn,
+  LogOut,
+  Sparkles,
+  Lock,
+  X,
+  ChevronDown,
 } from 'lucide-react';
-import { Input } from '../../components/ui/input';
-import { Button } from '../../components/ui/button';
-import { Badge } from '../../components/ui/badge';
-import { Switch } from '../../components/ui/switch';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../../components/ui/dialog';
-import { projectId, publicAnonKey } from '/utils/supabase/info';
+import { Input } from "../../components/ui/input.tsx";
 import { toast } from 'sonner';
-import { ROOMS } from '../../data/rooms';
+import { ROOMS } from "../../data/rooms.ts";
 
-interface RoomStatus {
+// ─── Types ────────────────────────────────────────────────────────────────────
+type RoomStatus =
+  | 'available'
+  | 'booked'
+  | 'checked_in'
+  | 'checked_out'
+  | 'repair'
+  | 'unavailable';
+
+interface RoomRecord {
   id: string;
   roomNumber: string;
   roomType: string;
-  status: 'available' | 'booked' | 'repair' | 'unavailable';
-  currentBooking?: any;
-}
-
-interface Booking {
-  id: string;
-  roomType?: string;
-  roomNumber?: string;
-  guests?: any[];
-  bookingType?: string;
-  checkIn: string;
-  checkOut: string;
-  status: string;
-  totalAmount?: number;
+  floor: number;
+  status: RoomStatus;
+  guestName?: string;
+  checkIn?: string;
+  checkOut?: string;
   confirmationNumber?: string;
+  totalAmount?: number;
+  notes?: string;
 }
 
+// ─── Status config ────────────────────────────────────────────────────────────
+const STATUS_CONFIG: Record<
+  RoomStatus,
+  { label: string; color: string; bg: string; dot: string; icon: React.ReactNode }
+> = {
+  available: {
+    label: 'ว่าง',
+    color: 'text-green-700',
+    bg: 'bg-green-50 border-green-300',
+    dot: 'bg-green-500',
+    icon: <CheckCircle2 className="w-3.5 h-3.5" />,
+  },
+  booked: {
+    label: 'จองแล้ว',
+    color: 'text-blue-700',
+    bg: 'bg-blue-50 border-blue-300',
+    dot: 'bg-blue-500',
+    icon: <Calendar className="w-3.5 h-3.5" />,
+  },
+  checked_in: {
+    label: 'มีผู้เข้าพัก',
+    color: 'text-indigo-700',
+    bg: 'bg-indigo-50 border-indigo-300',
+    dot: 'bg-indigo-500',
+    icon: <LogIn className="w-3.5 h-3.5" />,
+  },
+  checked_out: {
+    label: 'Make up room',
+    color: 'text-amber-700',
+    bg: 'bg-amber-50 border-amber-300',
+    dot: 'bg-amber-500',
+    icon: <Sparkles className="w-3.5 h-3.5" />,
+  },
+  repair: {
+    label: 'ปิดซ่อม',
+    color: 'text-orange-700',
+    bg: 'bg-orange-50 border-orange-300',
+    dot: 'bg-orange-500',
+    icon: <Wrench className="w-3.5 h-3.5" />,
+  },
+  unavailable: {
+    label: 'ปิดสำรอง',
+    color: 'text-gray-600',
+    bg: 'bg-gray-100 border-gray-300',
+    dot: 'bg-gray-400',
+    icon: <Lock className="w-3.5 h-3.5" />,
+  },
+};
+
+// ─── Generate 100 mock rooms ──────────────────────────────────────────────────
+const MOCK_STATUSES: RoomStatus[] = [
+  'available', 'available', 'available', 'available',
+  'booked', 'booked',
+  'checked_in', 'checked_in',
+  'checked_out',
+  'repair', 'unavailable',
+];
+
+function generateRooms(): RoomRecord[] {
+  const rooms: RoomRecord[] = [];
+  const types = [
+    { type: 'Superior', prefix: 'S', start: 101, count: 40 },
+    { type: 'Deluxe',   prefix: 'D', start: 201, count: 35 },
+    { type: 'Suite',    prefix: 'T', start: 301, count: 25 },
+  ];
+  const guests = ['สมชาย ใจดี', 'นิดา พรอำไพ', 'John Smith', 'วันเพ็ญ กิตติ'];
+  let idx = 0;
+  for (const t of types) {
+    for (let i = 0; i < t.count; i++) {
+      const num = t.start + i;
+      const floor = Math.floor((num % 100) / 10) + 1;
+      const status = MOCK_STATUSES[idx % MOCK_STATUSES.length];
+      const room: RoomRecord = {
+        id: `${t.prefix}${num}`,
+        roomNumber: `${t.prefix}${num}`,
+        roomType: t.type,
+        floor,
+        status,
+      };
+      if (status === 'booked' || status === 'checked_in' || status === 'checked_out') {
+        room.guestName = guests[i % 4];
+        room.checkIn = '2025-03-18';
+        room.checkOut = '2025-03-21';
+        room.confirmationNumber = `KU-${1000 + idx}`;
+        room.totalAmount = 3600 + idx * 100;
+      }
+      rooms.push(room);
+      idx++;
+    }
+  }
+  return rooms;
+}
+
+// ─── Room Detail Modal ────────────────────────────────────────────────────────
+function RoomDetailModal({
+  room,
+  onClose,
+  onStatusChange,
+}: {
+  room: RoomRecord;
+  onClose: () => void;
+  onStatusChange: (id: string, status: RoomStatus, notes?: string) => void;
+}) {
+  const cfg = STATUS_CONFIG[room.status];
+  const [notes, setNotes] = useState(room.notes ?? '');
+
+  const actions: {
+    label: string;
+    status: RoomStatus;
+    style: string;
+    icon: React.ReactNode;
+  }[] = [];
+
+  if (room.status === 'booked') {
+    actions.push({
+      label: 'Check-in ผู้เข้าพัก',
+      status: 'checked_in',
+      style: 'bg-indigo-600 hover:bg-indigo-700 text-white',
+      icon: <LogIn className="w-4 h-4" />,
+    });
+  }
+  if (room.status === 'checked_in') {
+    actions.push({
+      label: 'Check-out ผู้เข้าพัก',
+      status: 'checked_out',
+      style: 'bg-amber-500 hover:bg-amber-600 text-white',
+      icon: <LogOut className="w-4 h-4" />,
+    });
+  }
+  if (room.status === 'checked_out') {
+    actions.push({
+      label: 'ทำความสะอาดเสร็จ → ว่าง',
+      status: 'available',
+      style: 'bg-green-600 hover:bg-green-700 text-white',
+      icon: <CheckCircle2 className="w-4 h-4" />,
+    });
+  }
+  if (room.status === 'available') {
+    actions.push({
+      label: 'ปิดซ่อมชั่วคราว',
+      status: 'repair',
+      style: 'bg-orange-500 hover:bg-orange-600 text-white',
+      icon: <Wrench className="w-4 h-4" />,
+    });
+    actions.push({
+      label: 'ปิดสำรอง',
+      status: 'unavailable',
+      style: 'bg-gray-500 hover:bg-gray-600 text-white',
+      icon: <Lock className="w-4 h-4" />,
+    });
+  }
+  if (room.status === 'repair' || room.status === 'unavailable') {
+    actions.push({
+      label: 'เปิดห้อง (ว่าง)',
+      status: 'available',
+      style: 'bg-green-600 hover:bg-green-700 text-white',
+      icon: <CheckCircle2 className="w-4 h-4" />,
+    });
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+          <div className="flex items-center gap-3">
+            <div className={`w-10 h-10 rounded-xl flex items-center justify-center border-2 ${cfg.bg} ${cfg.color}`}>
+              <BedDouble className="w-5 h-5" />
+            </div>
+            <div>
+              <h2 className="text-lg font-bold text-gray-900">{room.roomNumber}</h2>
+              <p className="text-xs text-gray-500">{room.roomType} · ชั้น {room.floor}</p>
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 transition-colors"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+          {/* Current status badge */}
+          <div className={`flex items-center gap-2 px-4 py-3 rounded-xl border-2 ${cfg.bg}`}>
+            <span className={cfg.color}>{cfg.icon}</span>
+            <span className={`font-bold text-sm ${cfg.color}`}>
+              สถานะปัจจุบัน: {cfg.label}
+            </span>
+          </div>
+
+          {/* Guest info */}
+          {(room.status === 'booked' || room.status === 'checked_in' || room.status === 'checked_out') && (
+            <div className="bg-gray-50 rounded-xl p-4 text-sm space-y-2">
+              <p className="font-bold text-gray-700 flex items-center gap-1.5 mb-3">
+                <Users className="w-4 h-4 text-[#006b54]" /> ข้อมูลผู้เข้าพัก
+              </p>
+              <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-gray-600">
+                <div>
+                  <p className="text-xs text-gray-400">ชื่อผู้เข้าพัก</p>
+                  <p className="font-semibold">{room.guestName ?? '—'}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-400">หมายเลขจอง</p>
+                  <p className="font-mono font-semibold">{room.confirmationNumber ?? '—'}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-400">Check-in</p>
+                  <p className="font-semibold">{room.checkIn ?? '—'}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-400">Check-out</p>
+                  <p className="font-semibold">{room.checkOut ?? '—'}</p>
+                </div>
+                {room.totalAmount && (
+                  <div className="col-span-2">
+                    <p className="text-xs text-gray-400">ยอดรวม</p>
+                    <p className="font-bold text-[#006b54] text-base">
+                      ฿{room.totalAmount.toLocaleString()}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Make up room callout */}
+          {room.status === 'checked_out' && (
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+              <p className="font-bold text-amber-800 text-sm flex items-center gap-1.5 mb-1">
+                <Sparkles className="w-4 h-4" /> Make up room — รอ Housekeeping
+              </p>
+              <p className="text-xs text-amber-700 leading-relaxed mb-3">
+                Housekeeping ต้องตรวจสอบห้อง ถ่ายรูปความเสียหาย และเติมอุปกรณ์ก่อนเปิดห้องรับแขก
+              </p>
+              <Link
+                to={`/admin/housekeeping/${room.id}`}
+                className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-700 bg-amber-100 hover:bg-amber-200 px-3 py-1.5 rounded-lg transition-colors"
+              >
+                <Sparkles className="w-3.5 h-3.5" /> ไปหน้า Housekeeping →
+              </Link>
+            </div>
+          )}
+
+          {/* Notes */}
+          <div>
+            <label className="block text-xs font-bold text-gray-500 uppercase mb-1.5">
+              หมายเหตุ / บันทึกเพิ่มเติม
+            </label>
+            <textarea
+              rows={2}
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="เช่น ซ่อมแอร์, รอช่างประปา..."
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#006b54] outline-none resize-none"
+            />
+          </div>
+
+          {/* Action buttons */}
+          {actions.length > 0 && (
+            <div className="space-y-2 pt-1">
+              <p className="text-xs font-bold text-gray-500 uppercase tracking-wide">
+                เปลี่ยนสถานะ
+              </p>
+              {actions.map((a) => (
+                <button
+                  key={a.status}
+                  onClick={() => {
+                    onStatusChange(room.id, a.status, notes);
+                    onClose();
+                  }}
+                  className={`w-full flex items-center justify-center gap-2 py-2.5 rounded-xl font-bold text-sm transition-all ${a.style}`}
+                >
+                  {a.icon} {a.label}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Filter pill ──────────────────────────────────────────────────────────────
+function FilterPill({
+  label,
+  count,
+  dot,
+  active,
+  onClick,
+}: {
+  label: string;
+  count: number;
+  dot?: string;
+  active: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all whitespace-nowrap ${
+        active
+          ? 'bg-[#006b54] text-white border-[#006b54]'
+          : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300'
+      }`}
+    >
+      {dot && <span className={`w-1.5 h-1.5 rounded-full ${dot}`} />}
+      {label}
+      <span className={`ml-0.5 ${active ? 'text-white/70' : 'text-gray-400'}`}>{count}</span>
+    </button>
+  );
+}
+
+// ─── Main Component ───────────────────────────────────────────────────────────
 export function AdminDashboard() {
   const { user, accessToken, loading } = useAuth();
   const navigate = useNavigate();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [roomStats, setRoomStats] = useState({
-    total: 0,
-    available: 0,
-    booked: 0,
-    repair: 0,
-    unavailable: 0,
-  });
-  const [rooms, setRooms] = useState<RoomStatus[]>([]);
-  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
-  const [bookingModalOpen, setBookingModalOpen] = useState(false);
-  const [loadingData, setLoadingData] = useState(true);
-  const [searchResults, setSearchResults] = useState<Booking[]>([]);
 
-  // Check admin access
+  const [rooms, setRooms] = useState<RoomRecord[]>(generateRooms);
+  const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState<RoomStatus | 'all'>('all');
+  const [typeFilter, setTypeFilter] = useState<string>('all');
+  const [selectedRoom, setSelectedRoom] = useState<RoomRecord | null>(null);
+
   useEffect(() => {
-    if (!loading && (!user || ((user as any).role !== 'admin' && (user as any).role !== 'staff'))) {
+    if (!loading && (!user || !['admin', 'staff'].includes((user as any).role))) {
       toast.error('Access denied: Admin privileges required');
       navigate('/');
     }
   }, [user, loading, navigate]);
 
-  // Load initial data
-  useEffect(() => {
-    if (user && accessToken) {
-      loadDashboardData();
+  // ── Stats ──
+  const stats = useMemo(() => {
+    const s: Record<string, number> = { total: rooms.length };
+    for (const r of rooms) s[r.status] = (s[r.status] ?? 0) + 1;
+    return s;
+  }, [rooms]);
+
+  // ── Filtered ──
+  const filtered = useMemo(() => {
+    return rooms.filter((r) => {
+      const q = search.toLowerCase();
+      const matchSearch =
+        !q ||
+        r.roomNumber.toLowerCase().includes(q) ||
+        (r.guestName ?? '').toLowerCase().includes(q) ||
+        (r.confirmationNumber ?? '').toLowerCase().includes(q);
+      const matchStatus = statusFilter === 'all' || r.status === statusFilter;
+      const matchType = typeFilter === 'all' || r.roomType === typeFilter;
+      return matchSearch && matchStatus && matchType;
+    });
+  }, [rooms, search, statusFilter, typeFilter]);
+
+  // ── Group by floor ──
+  const byFloor = useMemo(() => {
+    const map = new Map<number, RoomRecord[]>();
+    for (const r of filtered) {
+      if (!map.has(r.floor)) map.set(r.floor, []);
+      map.get(r.floor)!.push(r);
     }
-  }, [user, accessToken]);
+    return Array.from(map.entries()).sort((a, b) => a[0] - b[0]);
+  }, [filtered]);
 
-  const loadDashboardData = async () => {
-    setLoadingData(true);
-    try {
-      // Initialize mock rooms based on ROOMS data
-      const mockRooms: RoomStatus[] = [];
-      ROOMS.forEach((roomType) => {
-        // Create 10 rooms of each type
-        for (let i = 1; i <= 10; i++) {
-          const roomNumber = `${roomType.id.charAt(0).toUpperCase()}${i.toString().padStart(3, '0')}`;
-          mockRooms.push({
-            id: `${roomType.id}-${i}`,
-            roomNumber,
-            roomType: roomType.name,
-            status: i <= 6 ? 'available' : i <= 8 ? 'booked' : i === 9 ? 'repair' : 'unavailable',
-          });
-        }
-      });
-
-      setRooms(mockRooms);
-
-      // Calculate stats
-      const stats = {
-        total: mockRooms.length,
-        available: mockRooms.filter(r => r.status === 'available').length,
-        booked: mockRooms.filter(r => r.status === 'booked').length,
-        repair: mockRooms.filter(r => r.status === 'repair').length,
-        unavailable: mockRooms.filter(r => r.status === 'unavailable').length,
-      };
-      setRoomStats(stats);
-
-    } catch (error) {
-      console.error('Error loading dashboard data:', error);
-      toast.error('Failed to load dashboard data');
-    } finally {
-      setLoadingData(false);
-    }
-  };
-
-  const handleSearch = async () => {
-    if (!searchQuery.trim()) {
-      setSearchResults([]);
-      return;
-    }
-
-    try {
-      const response = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/make-server-fb9ae70e/admin/bookings/search?q=${encodeURIComponent(searchQuery)}`,
-        {
-          headers: {
-            'Authorization': `Bearer ${accessToken}`,
-          },
-        }
-      );
-
-      if (response.ok) {
-        const data = await response.json();
-        setSearchResults(data.bookings || []);
-      } else {
-        toast.error('Search failed');
-      }
-    } catch (error) {
-      console.error('Error searching bookings:', error);
-      toast.error('Search error');
-    }
-  };
-
-  const toggleRoomStatus = async (roomId: string, newStatus: 'available' | 'unavailable') => {
-    const updatedRooms = rooms.map(room => 
-      room.id === roomId ? { ...room, status: newStatus } : room
+  // ── Status change ──
+  const handleStatusChange = (id: string, status: RoomStatus, notes?: string) => {
+    setRooms((prev) =>
+      prev.map((r) => (r.id === id ? { ...r, status, notes: notes ?? r.notes } : r))
     );
-    setRooms(updatedRooms);
-
-    // Calculate new stats
-    const stats = {
-      total: updatedRooms.length,
-      available: updatedRooms.filter(r => r.status === 'available').length,
-      booked: updatedRooms.filter(r => r.status === 'booked').length,
-      repair: updatedRooms.filter(r => r.status === 'repair').length,
-      unavailable: updatedRooms.filter(r => r.status === 'unavailable').length,
-    };
-    setRoomStats(stats);
-
-    toast.success(`Room ${newStatus === 'available' ? 'opened' : 'closed'} successfully`);
+    setSelectedRoom((prev) =>
+      prev?.id === id ? { ...prev, status, notes: notes ?? prev.notes } : prev
+    );
+    toast.success(`ห้อง ${id} → ${STATUS_CONFIG[status].label}`);
   };
 
-  const handleCheckIn = async (bookingId: string) => {
-    try {
-      const response = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/make-server-fb9ae70e/admin/bookings/${bookingId}/checkin`,
-        {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${accessToken}`,
-          },
-        }
-      );
-
-      if (response.ok) {
-        toast.success('Guest checked in successfully');
-        setBookingModalOpen(false);
-        loadDashboardData();
-      } else {
-        const data = await response.json();
-        toast.error(data.error || 'Check-in failed');
-      }
-    } catch (error) {
-      console.error('Error checking in:', error);
-      toast.error('Check-in error');
-    }
-  };
-
-  const handleCheckOut = async (bookingId: string) => {
-    try {
-      const response = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/make-server-fb9ae70e/admin/bookings/${bookingId}/checkout`,
-        {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${accessToken}`,
-          },
-        }
-      );
-
-      if (response.ok) {
-        toast.success('Guest checked out successfully');
-        setBookingModalOpen(false);
-        loadDashboardData();
-      } else {
-        const data = await response.json();
-        toast.error(data.error || 'Check-out failed');
-      }
-    } catch (error) {
-      console.error('Error checking out:', error);
-      toast.error('Check-out error');
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'available':
-        return 'bg-green-100 border-green-300 text-green-800';
-      case 'booked':
-        return 'bg-blue-100 border-blue-300 text-blue-800';
-      case 'repair':
-        return 'bg-orange-100 border-orange-300 text-orange-800';
-      case 'unavailable':
-        return 'bg-gray-100 border-gray-300 text-gray-800';
-      default:
-        return 'bg-gray-100 border-gray-300 text-gray-800';
-    }
-  };
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'available':
-        return <CheckCircle2 className="w-4 h-4" />;
-      case 'booked':
-        return <DoorOpen className="w-4 h-4" />;
-      case 'repair':
-        return <Wrench className="w-4 h-4" />;
-      case 'unavailable':
-        return <XCircle className="w-4 h-4" />;
-      default:
-        return <BedDouble className="w-4 h-4" />;
-    }
-  };
-
-  if (loading || loadingData) {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-[#006b54] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading dashboard...</p>
-        </div>
+        <div className="w-12 h-12 border-4 border-[#006b54] border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
+      {/* ── Sticky Header ── */}
       <div className="bg-white border-b border-gray-200 sticky top-20 z-40">
-        <div className="container mx-auto px-4 py-6">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div className="container mx-auto px-4 py-4">
+          {/* Back */}
+          <Link
+            to="/admin"
+            className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-[#006b54] font-medium mb-3 transition-colors"
+          >
+            <ChevronLeft className="w-4 h-4" /> Back to Admin Portal
+          </Link>
+
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-4">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Front Desk Dashboard</h1>
-              <p className="text-gray-600 mt-1">Manage rooms and bookings</p>
+              <h1 className="text-2xl font-bold text-gray-900">Front Desk Dashboard</h1>
+              <p className="text-sm text-gray-500">
+                จัดการห้องพักทั้งหมด {rooms.length} ห้อง · คลิกที่ห้องเพื่อดูรายละเอียด
+              </p>
             </div>
-
-            {/* Search Bar */}
-            <div className="flex gap-2 w-full md:w-auto">
-              <div className="relative flex-1 md:w-80">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                <Input
-                  type="text"
-                  placeholder="Search by name or booking ID..."
-                  className="pl-10"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-                />
-              </div>
-              <Button onClick={handleSearch} className="bg-[#006b54] hover:bg-[#005a46]">
-                Search
-              </Button>
+            <div className="relative w-full md:w-64">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <Input
+                placeholder="ค้นหาห้อง / ชื่อผู้เข้าพัก / เลขจอง"
+                className="pl-9 text-sm"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
             </div>
           </div>
 
-          {/* Stats Cards */}
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mt-6">
-            <div className="bg-gray-50 rounded-xl p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs font-semibold text-gray-500 uppercase">Total Rooms</p>
-                  <p className="text-2xl font-bold text-gray-900 mt-1">{roomStats.total}</p>
-                </div>
-                <BedDouble className="w-8 h-8 text-gray-400" />
-              </div>
-            </div>
-            <div className="bg-green-50 rounded-xl p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs font-semibold text-green-600 uppercase">Available</p>
-                  <p className="text-2xl font-bold text-green-900 mt-1">{roomStats.available}</p>
-                </div>
-                <CheckCircle2 className="w-8 h-8 text-green-600" />
-              </div>
-            </div>
-            <div className="bg-blue-50 rounded-xl p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs font-semibold text-blue-600 uppercase">Booked</p>
-                  <p className="text-2xl font-bold text-blue-900 mt-1">{roomStats.booked}</p>
-                </div>
-                <DoorOpen className="w-8 h-8 text-blue-600" />
-              </div>
-            </div>
-            <div className="bg-orange-50 rounded-xl p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs font-semibold text-orange-600 uppercase">Repair</p>
-                  <p className="text-2xl font-bold text-orange-900 mt-1">{roomStats.repair}</p>
-                </div>
-                <Wrench className="w-8 h-8 text-orange-600" />
-              </div>
-            </div>
-            <div className="bg-gray-100 rounded-xl p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs font-semibold text-gray-600 uppercase">Closed</p>
-                  <p className="text-2xl font-bold text-gray-900 mt-1">{roomStats.unavailable}</p>
-                </div>
-                <XCircle className="w-8 h-8 text-gray-600" />
-              </div>
-            </div>
+          {/* ── Stat strip ── */}
+          <div className="grid grid-cols-4 md:grid-cols-7 gap-2">
+            {/* Total */}
+            <button
+              onClick={() => setStatusFilter('all')}
+              className={`rounded-xl px-3 py-2 text-center border transition-all ${
+                statusFilter === 'all'
+                  ? 'bg-[#006b54] text-white border-[#006b54]'
+                  : 'bg-gray-50 border-gray-200 hover:border-gray-300'
+              }`}
+            >
+              <p className={`text-xs font-semibold uppercase ${statusFilter === 'all' ? 'text-white/80' : 'text-gray-500'}`}>
+                ทั้งหมด
+              </p>
+              <p className={`text-xl font-bold ${statusFilter === 'all' ? 'text-white' : 'text-gray-800'}`}>
+                {stats.total}
+              </p>
+            </button>
+
+            {(Object.keys(STATUS_CONFIG) as RoomStatus[]).map((s) => {
+              const c = STATUS_CONFIG[s];
+              const active = statusFilter === s;
+              return (
+                <button
+                  key={s}
+                  onClick={() => setStatusFilter(active ? 'all' : s)}
+                  className={`rounded-xl px-3 py-2 text-center border-2 transition-all ${
+                    active ? c.bg : 'bg-white border-gray-200 hover:border-gray-300'
+                  }`}
+                >
+                  <p className={`text-xs font-semibold uppercase ${active ? c.color : 'text-gray-400'}`}>
+                    {c.label}
+                  </p>
+                  <p className={`text-xl font-bold ${active ? c.color : 'text-gray-800'}`}>
+                    {stats[s] ?? 0}
+                  </p>
+                </button>
+              );
+            })}
           </div>
         </div>
       </div>
 
-      {/* Search Results */}
-      {searchResults.length > 0 && (
-        <div className="container mx-auto px-4 py-6">
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <h2 className="text-lg font-bold text-gray-900 mb-4">Search Results ({searchResults.length})</h2>
-            <div className="space-y-3">
-              {searchResults.map((booking) => (
-                <div
-                  key={booking.id}
-                  onClick={() => {
-                    setSelectedBooking(booking);
-                    setBookingModalOpen(true);
-                  }}
-                  className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
-                >
-                  <div className="flex-1">
-                    <p className="font-semibold text-gray-900">{booking.guests?.[0]?.name || 'Guest'}</p>
-                    <p className="text-sm text-gray-500">
-                      {booking.confirmationNumber || booking.id} • {booking.roomType || 'Room'}
-                    </p>
-                  </div>
-                  <Badge className={getStatusColor(booking.status)}>
-                    {booking.status}
-                  </Badge>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
+      {/* ── Content ── */}
+      <div className="container mx-auto px-4 py-5">
+        {/* Filters row */}
+        <div className="flex items-center gap-2 flex-wrap mb-5">
+          {/* Room type filter */}
+          {['all', 'Superior', 'Deluxe', 'Suite'].map((t) => (
+            <FilterPill
+              key={t}
+              label={t === 'all' ? 'ทุกประเภท' : t}
+              count={t === 'all' ? filtered.length : filtered.filter((r) => r.roomType === t).length}
+              active={typeFilter === t}
+              onClick={() => setTypeFilter(t)}
+            />
+          ))}
 
-      {/* Room Status Grid */}
-      <div className="container mx-auto px-4 py-6">
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <h2 className="text-xl font-bold text-gray-900 mb-6">Room Status Grid</h2>
+          <div className="w-px h-5 bg-gray-200 mx-1 hidden sm:block" />
 
-          {/* Group rooms by type */}
-          {ROOMS.map((roomType) => {
-            const typeRooms = rooms.filter(r => r.roomType === roomType.name);
-            
-            return (
-              <div key={roomType.id} className="mb-8 last:mb-0">
-                <h3 className="text-lg font-bold text-gray-700 mb-4 flex items-center gap-2">
-                  <BedDouble className="w-5 h-5 text-[#006b54]" />
-                  {roomType.name} Rooms
-                  <span className="text-sm font-normal text-gray-500">({typeRooms.length} rooms)</span>
-                </h3>
+          {/* Status filter pills */}
+          {(Object.keys(STATUS_CONFIG) as RoomStatus[]).map((s) => (
+            <FilterPill
+              key={s}
+              label={STATUS_CONFIG[s].label}
+              count={filtered.filter((r) => r.status === s).length}
+              dot={STATUS_CONFIG[s].dot}
+              active={statusFilter === s}
+              onClick={() => setStatusFilter(statusFilter === s ? 'all' : s)}
+            />
+          ))}
 
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-3">
-                  {typeRooms.map((room) => (
-                    <div
-                      key={room.id}
-                      className={`border-2 rounded-lg p-3 transition-all hover:shadow-md ${getStatusColor(room.status)}`}
-                    >
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="font-bold text-sm">{room.roomNumber}</span>
-                        {getStatusIcon(room.status)}
-                      </div>
-                      <p className="text-xs font-medium capitalize mb-2">{room.status}</p>
-                      
-                      {(room.status === 'available' || room.status === 'unavailable') && (
-                        <div className="flex items-center justify-between mt-2 pt-2 border-t border-current/20">
-                          <span className="text-xs">Open</span>
-                          <Switch
-                            checked={room.status === 'available'}
-                            onCheckedChange={(checked) => 
-                              toggleRoomStatus(room.id, checked ? 'available' : 'unavailable')
-                            }
-                            className="scale-75"
-                          />
-                        </div>
-                      )}
-
-                      {room.status === 'booked' && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="w-full mt-2 text-xs h-7"
-                          onClick={() => {
-                            setSelectedBooking({
-                              id: `mock-${room.id}`,
-                              roomNumber: room.roomNumber,
-                              roomType: room.roomType,
-                              guests: [{ name: 'Sample Guest' }],
-                              bookingType: 'individual',
-                              checkIn: new Date().toISOString(),
-                              checkOut: new Date(Date.now() + 86400000 * 3).toISOString(),
-                              status: 'confirmed',
-                            });
-                            setBookingModalOpen(true);
-                          }}
-                        >
-                          Details
-                        </Button>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Booking Detail Modal */}
-      <Dialog open={bookingModalOpen} onOpenChange={setBookingModalOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle className="text-2xl font-bold">Booking Details</DialogTitle>
-          </DialogHeader>
-
-          {selectedBooking && (
-            <div className="space-y-6">
-              {/* Guest Information */}
-              <div className="bg-gray-50 rounded-lg p-4">
-                <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
-                  <Users className="w-5 h-5 text-[#006b54]" />
-                  Guest Information
-                </h3>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-xs font-semibold text-gray-500 uppercase">Guest Name</p>
-                    <p className="font-medium text-gray-900">{selectedBooking.guests?.[0]?.name || 'N/A'}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs font-semibold text-gray-500 uppercase">Booking Type</p>
-                    <Badge className="mt-1">{selectedBooking.bookingType || 'Individual'}</Badge>
-                  </div>
-                  <div>
-                    <p className="text-xs font-semibold text-gray-500 uppercase">Room</p>
-                    <p className="font-medium text-gray-900">{selectedBooking.roomNumber || selectedBooking.roomType || 'N/A'}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs font-semibold text-gray-500 uppercase">Status</p>
-                    <Badge className={`mt-1 ${getStatusColor(selectedBooking.status)}`}>
-                      {selectedBooking.status}
-                    </Badge>
-                  </div>
-                </div>
-              </div>
-
-              {/* Booking Details */}
-              <div className="bg-gray-50 rounded-lg p-4">
-                <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
-                  <Calendar className="w-5 h-5 text-[#006b54]" />
-                  Booking Details
-                </h3>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-xs font-semibold text-gray-500 uppercase">Check-in</p>
-                    <p className="font-medium text-gray-900">{new Date(selectedBooking.checkIn).toLocaleDateString()}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs font-semibold text-gray-500 uppercase">Check-out</p>
-                    <p className="font-medium text-gray-900">{new Date(selectedBooking.checkOut).toLocaleDateString()}</p>
-                  </div>
-                  {selectedBooking.totalAmount && (
-                    <div>
-                      <p className="text-xs font-semibold text-gray-500 uppercase">Total Amount</p>
-                      <p className="font-bold text-[#006b54] text-lg">฿{selectedBooking.totalAmount.toLocaleString()}</p>
-                    </div>
-                  )}
-                  {selectedBooking.confirmationNumber && (
-                    <div>
-                      <p className="text-xs font-semibold text-gray-500 uppercase">Confirmation #</p>
-                      <p className="font-mono font-medium text-gray-900">{selectedBooking.confirmationNumber}</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex gap-3">
-                {(selectedBooking.status === 'confirmed' || selectedBooking.status === 'draft') && (
-                  <Button
-                    onClick={() => handleCheckIn(selectedBooking.id)}
-                    className="flex-1 bg-green-600 hover:bg-green-700"
-                  >
-                    <CheckCircle2 className="w-4 h-4 mr-2" />
-                    Check-in Guest
-                  </Button>
-                )}
-                {selectedBooking.status === 'checked-in' && (
-                  <Button
-                    onClick={() => handleCheckOut(selectedBooking.id)}
-                    className="flex-1 bg-blue-600 hover:bg-blue-700"
-                  >
-                    <DoorOpen className="w-4 h-4 mr-2" />
-                    Check-out Guest
-                  </Button>
-                )}
-                <Button
-                  variant="outline"
-                  onClick={() => setBookingModalOpen(false)}
-                  className="flex-1"
-                >
-                  Close
-                </Button>
-              </div>
-            </div>
+          {(search || statusFilter !== 'all' || typeFilter !== 'all') && (
+            <button
+              onClick={() => { setSearch(''); setStatusFilter('all'); setTypeFilter('all'); }}
+              className="flex items-center gap-1 text-xs text-gray-400 hover:text-red-500 ml-auto transition-colors"
+            >
+              <X className="w-3.5 h-3.5" /> ล้างตัวกรอง
+            </button>
           )}
-        </DialogContent>
-      </Dialog>
+        </div>
+
+        {/* Legend */}
+        <div className="flex items-center gap-4 flex-wrap mb-4 text-xs text-gray-400">
+          {(Object.keys(STATUS_CONFIG) as RoomStatus[]).map((s) => (
+            <span key={s} className="flex items-center gap-1">
+              <span className={`w-2 h-2 rounded-full ${STATUS_CONFIG[s].dot}`} />
+              {STATUS_CONFIG[s].label}
+            </span>
+          ))}
+        </div>
+
+        {/* Room grid grouped by floor */}
+        {byFloor.length === 0 ? (
+          <div className="text-center py-20 text-gray-400">
+            <BedDouble className="w-12 h-12 mx-auto mb-3 opacity-30" />
+            <p className="font-medium">ไม่พบห้องที่ตรงกับเงื่อนไข</p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {byFloor.map(([floor, floorRooms]) => (
+              <div key={floor} className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                {/* Floor header */}
+                <div className="flex items-center gap-3 px-4 py-2.5 bg-gray-50 border-b border-gray-100">
+                  <ChevronDown className="w-4 h-4 text-gray-400" />
+                  <span className="text-sm font-bold text-gray-700">ชั้น {floor}</span>
+                  <span className="text-xs text-gray-400">{floorRooms.length} ห้อง</span>
+                  {/* Per-floor mini stats */}
+                  <div className="ml-auto flex items-center gap-1.5 flex-wrap">
+                    {(Object.keys(STATUS_CONFIG) as RoomStatus[]).map((s) => {
+                      const cnt = floorRooms.filter((r) => r.status === s).length;
+                      if (!cnt) return null;
+                      return (
+                        <span
+                          key={s}
+                          className={`flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full border ${STATUS_CONFIG[s].bg} ${STATUS_CONFIG[s].color}`}
+                        >
+                          <span className={`w-1.5 h-1.5 rounded-full ${STATUS_CONFIG[s].dot}`} />
+                          {cnt}
+                        </span>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Room cells */}
+                <div className="p-3 grid grid-cols-6 sm:grid-cols-8 md:grid-cols-10 lg:grid-cols-12 xl:grid-cols-14 gap-2">
+                  {floorRooms.map((room) => {
+                    const cfg = STATUS_CONFIG[room.status];
+                    return (
+                      <button
+                        key={room.id}
+                        onClick={() => setSelectedRoom(room)}
+                        className={`relative rounded-lg border-2 p-2 flex flex-col items-center gap-0.5 transition-all hover:scale-105 hover:shadow-md active:scale-95 cursor-pointer ${cfg.bg}`}
+                        title={`${room.roomNumber} — ${cfg.label}${room.guestName ? ` (${room.guestName})` : ''}`}
+                      >
+                        <span className={`absolute top-1 right-1 w-1.5 h-1.5 rounded-full ${cfg.dot}`} />
+                        <span className={`text-[11px] font-bold leading-tight ${cfg.color}`}>
+                          {room.roomNumber}
+                        </span>
+                        <span className={`opacity-70 ${cfg.color}`}>{cfg.icon}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <p className="text-center text-xs text-gray-400 mt-6">
+          แสดง {filtered.length} จาก {rooms.length} ห้อง · คลิกที่ห้องเพื่อดูรายละเอียดและเปลี่ยนสถานะ
+        </p>
+      </div>
+
+      {/* ── Room Detail Modal ── */}
+      {selectedRoom && (
+        <RoomDetailModal
+          room={rooms.find((r) => r.id === selectedRoom.id) ?? selectedRoom}
+          onClose={() => setSelectedRoom(null)}
+          onStatusChange={handleStatusChange}
+        />
+      )}
     </div>
   );
 }

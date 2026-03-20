@@ -1,5 +1,13 @@
 import { Link } from "react-router-dom";
-import { LayoutDashboard, ClipboardList, BarChart3, Users, Calendar, Wrench } from "lucide-react";
+import {
+  LayoutDashboard,
+  ClipboardList,
+  BarChart3,
+  Users,
+  Calendar,
+  Wrench,
+  SquarePen,
+} from "lucide-react";
 import { useAuth } from "../contexts/AuthContext.tsx";
 
 export function AdminInstructions() {
@@ -9,23 +17,40 @@ export function AdminInstructions() {
     {
       title: "Dashboard",
       icon: LayoutDashboard,
-      description: "View room status grid, manage bookings with check-in/check-out functionality",
+      description:
+        "View room status grid, manage bookings with check-in/check-out functionality",
       link: "/admin/dashboard",
       color: "bg-blue-50 text-blue-600",
     },
     {
       title: "Housekeeping",
       icon: Wrench,
-      description: "Mobile-first module with photo uploads, inventory tracking, and room cleaning status",
+      description:
+        "Mobile-first module with photo uploads, inventory tracking, and room cleaning status",
       link: "/admin/housekeeping",
       color: "bg-green-50 text-green-600",
     },
     {
       title: "Reports & Analytics",
       icon: BarChart3,
-      description: "Comprehensive reports with data visualization for occupancy, revenue, and performance metrics",
+      description:
+        "Comprehensive reports with data visualization for occupancy, revenue, and performance metrics",
       link: "/admin/reports",
       color: "bg-purple-50 text-purple-600",
+    },
+    {
+      title: "New Booking",
+      icon: SquarePen ,
+      description: "Create group (5+ rooms) or monthly bookings for customers",
+      link: "/admin/booking",
+      color: "bg-orange-50 text-orange-600",
+    },
+    {
+      title: "User Management",
+      icon: Users,
+      description: "Create group (5+ rooms) or monthly bookings for customers",
+      link: "/admin/users",
+      color: "bg-orange-50 text-orange-600",
     },
   ];
 
@@ -34,15 +59,22 @@ export function AdminInstructions() {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">KU Home Admin Portal</h1>
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">
+            KU Home Admin Portal
+          </h1>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Welcome to the comprehensive hospitality management system. Access all admin features and manage your property efficiently.
+            Welcome to the comprehensive hospitality management system. Access
+            all admin features and manage your property efficiently.
           </p>
           {user && (
             <div className="mt-4 inline-flex items-center px-4 py-2 bg-[#006b54] text-white rounded-lg">
               <Users className="w-5 h-5 mr-2" />
               <span>Logged in as: {user.name || user.email}</span>
-              {user.role && <span className="ml-2 px-2 py-1 bg-white/20 rounded text-sm">({user.role})</span>}
+              {user.role && (
+                <span className="ml-2 px-2 py-1 bg-white/20 rounded text-sm">
+                  ({user.role})
+                </span>
+              )}
             </div>
           )}
         </div>
@@ -57,11 +89,17 @@ export function AdminInstructions() {
                 to={feature.link}
                 className="bg-white rounded-xl shadow-lg p-8 hover:shadow-xl transition-shadow duration-300 border border-gray-200"
               >
-                <div className={`w-16 h-16 rounded-lg ${feature.color} flex items-center justify-center mb-6`}>
+                <div
+                  className={`w-16 h-16 rounded-lg ${feature.color} flex items-center justify-center mb-6`}
+                >
                   <Icon className="w-8 h-8" />
                 </div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-3">{feature.title}</h3>
-                <p className="text-gray-600 leading-relaxed">{feature.description}</p>
+                <h3 className="text-2xl font-bold text-gray-900 mb-3">
+                  {feature.title}
+                </h3>
+                <p className="text-gray-600 leading-relaxed">
+                  {feature.description}
+                </p>
               </Link>
             );
           })}
@@ -69,10 +107,14 @@ export function AdminInstructions() {
 
         {/* System Info */}
         <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-200">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">System Features</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">
+            System Features
+          </h2>
           <div className="grid md:grid-cols-2 gap-6">
             <div>
-              <h3 className="font-semibold text-gray-900 mb-3">Authentication</h3>
+              <h3 className="font-semibold text-gray-900 mb-3">
+                Authentication
+              </h3>
               <ul className="space-y-2 text-gray-600">
                 <li className="flex items-start">
                   <span className="text-[#006b54] mr-2">•</span>
@@ -90,11 +132,15 @@ export function AdminInstructions() {
             </div>
 
             <div>
-              <h3 className="font-semibold text-gray-900 mb-3">Booking Management</h3>
+              <h3 className="font-semibold text-gray-900 mb-3">
+                Booking Management
+              </h3>
               <ul className="space-y-2 text-gray-600">
                 <li className="flex items-start">
                   <span className="text-[#006b54] mr-2">•</span>
-                  <span>Multiple pricing tiers (Standard, Personnel, Group, Monthly)</span>
+                  <span>
+                    Multiple pricing tiers (Standard, Personnel, Group, Monthly)
+                  </span>
                 </li>
                 <li className="flex items-start">
                   <span className="text-[#006b54] mr-2">•</span>
@@ -102,7 +148,9 @@ export function AdminInstructions() {
                 </li>
                 <li className="flex items-start">
                   <span className="text-[#006b54] mr-2">•</span>
-                  <span>Multiple payment methods (QR, Cash, Department Transfer)</span>
+                  <span>
+                    Multiple payment methods (QR, Cash, Department Transfer)
+                  </span>
                 </li>
               </ul>
             </div>

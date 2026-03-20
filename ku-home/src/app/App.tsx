@@ -19,6 +19,8 @@ import { AdminDashboard } from "./pages/admin/AdminDashboard.tsx";
 import { HousekeepingModule } from "./pages/admin/HousekeepingModule.tsx";
 import { ReportsAnalytics } from "./pages/admin/ReportsAnalytics.tsx";
 import { AdminInstructions } from "./pages/AdminInstructions.tsx";
+import { AdminBookingPage } from "./pages/admin/AdminBookingPage.tsx";
+import { UserManagement } from "./pages/admin/UserManagement.tsx";
 
 export default function App() {
   return (
@@ -33,7 +35,7 @@ export default function App() {
             <Route path="services" element={<ServicesPage />} />
             <Route path="facilities" element={<FacilitiesPage />} />
             <Route path="contact" element={<ContactPage />} />
-            <Route path="booking/guest/" element={<GuestInfoPage />} />
+            <Route path="booking/guest" element={<GuestInfoPage />} />
             <Route path="booking/payment" element={<PaymentPage />} />
             <Route path="booking/success" element={<SuccessPage />} />
             <Route path="profile" element={<UserProfile />} />
@@ -44,6 +46,8 @@ export default function App() {
             <Route path="admin/housekeeping" element={<HousekeepingModule />} />
             <Route path="admin/housekeeping/:roomId" element={<HousekeepingModule />} />
             <Route path="admin/reports" element={<ReportsAnalytics />} />
+             <Route path="admin/booking" element={<AdminBookingPage />} />
+             <Route path="admin/users" element={<UserManagement />} />
           </Route>
         </Routes>
       </BrowserRouter>
