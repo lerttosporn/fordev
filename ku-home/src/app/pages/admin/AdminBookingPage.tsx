@@ -23,6 +23,7 @@ import {
   Repeat,
 } from 'lucide-react';
 import { ROOMS } from "../../data/roomsDataType.ts";
+import { today } from "../../../../utils/bookingUtils.ts";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 type BookingMode = 'group' | 'monthly';
@@ -172,7 +173,6 @@ export function AdminBookingPage() {
   const [submitted, setSubmitted] = useState(false);
 
   // ── Calculations ──
-  const today = new Date().toISOString().split('T')[0];
   const getNextDay = (d: string) => {
     const dt = d ? new Date(d) : new Date();
     dt.setDate(dt.getDate() + 1);
@@ -442,7 +442,7 @@ export function AdminBookingPage() {
                     </label>
                     <input
                       type="date"
-                      min={today}
+                      min={today()}
                       value={checkIn}
                       onChange={(e) => {
                         setCheckIn(e.target.value);
@@ -457,7 +457,7 @@ export function AdminBookingPage() {
                     </label>
                     <input
                       type="date"
-                      min={checkIn ? getNextDay(checkIn) : getNextDay(today)}
+                      min={checkIn ? getNextDay(checkIn) : getNextDay(today())}
                       value={checkOut}
                       onChange={(e) => setCheckOut(e.target.value)}
                       className="w-full border border-gray-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-[#006b54] outline-none"

@@ -227,7 +227,6 @@ function CreateModal({ onClose, onSave }: CreateModalProps) {
                 value={form.validFrom}
                 onChange={(e) => {
                   update({ validFrom: e.target.value });
-                  // ถ้า validUntil น้อยกว่า validFrom ที่เลือกใหม่ ให้ล้างค่า
                   if (form.validUntil && e.target.value >= form.validUntil) {
                     update({ validFrom: e.target.value, validUntil: "" });
                   }
