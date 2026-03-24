@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useState } from "react";
+import { Link } from "react-router-dom";
 import {
   Users,
   Calendar,
@@ -21,59 +21,39 @@ import {
   AlertCircle,
   DollarSign,
   Repeat,
-} from 'lucide-react';
+} from "lucide-react";
 import { ROOMS } from "../../data/roomsDataType.ts";
 import { today } from "../../../../utils/bookingUtils.ts";
+import {
+  BookingType,
+  DepartmentInfo,
+  Guest,
+  RoomAssignment,
+} from "../../../models/index.ts";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
-type BookingMode = 'group' | 'monthly';
 type Step = 1 | 2 | 3 | 4;
-type PaymentMethod = 'qr' | 'cash' | 'department';
-
-interface GuestRow {
-  id: string;
-  title: string;
-  firstName: string;
-  lastName: string;
-  idNumber: string;
-  email: string;
-  phone: string;
-  isKuMember: boolean;
-}
-
-interface RoomAssignment {
-  roomTypeId: string;
-  count: number;
-  extraBeds: number;
-  includeBreakfast: boolean;
-}
-
-interface DepartmentInfo {
-  deptName: string;
-  erpCode: string;
-  contactPerson: string;
-  staffId: string;
-}
+type PaymentMethod = "qr" | "cash" | "department";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 const uid = () => Math.random().toString(36).slice(2, 8);
 
-const emptyGuest = (): GuestRow => ({
+const emptyGuest = (): Guest => ({
   id: uid(),
-  title: 'Mr.',
-  firstName: '',
-  lastName: '',
-  idNumber: '',
-  email: '',
-  phone: '',
+  title: "Mr.",
+  firstName: "",
+  lastName: "",
+  idNumber: "",
+  email: "",
+  phone: "",
   isKuMember: false,
 });
 
 const STEP_LABELS: Record<Step, string> = {
-  1: 'Booking Type',
-  2: 'Room & Dates',
-  3: 'Guest Details',
-  4: 'Payment',
+  1: "Booking Type",
+  2: "Room & Dates",
+  3: "Guest Details",
+  4: "Payment",
 };
 
 // ─── Sub-components ──────────────────────────────────────────────────────────
@@ -87,17 +67,17 @@ function StepIndicator({ current }: { current: Step }) {
             <div
               className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold border-2 transition-all ${
                 s < current
-                  ? 'bg-[#006b54] border-[#006b54] text-white'
+                  ? "bg-[#006b54] border-[#006b54] text-white"
                   : s === current
-                  ? 'border-[#006b54] text-[#006b54] bg-white ring-4 ring-[#006b54]/20'
-                  : 'border-gray-200 text-gray-400 bg-white'
+                    ? "border-[#006b54] text-[#006b54] bg-white ring-4 ring-[#006b54]/20"
+                    : "border-gray-200 text-gray-400 bg-white"
               }`}
             >
               {s < current ? <CheckCircle2 className="w-4 h-4" /> : s}
             </div>
             <span
               className={`text-[10px] mt-1 font-medium uppercase tracking-wide ${
-                s === current ? 'text-[#006b54]' : 'text-gray-400'
+                s === current ? "text-[#006b54]" : "text-gray-400"
               }`}
             >
               {STEP_LABELS[s]}
@@ -106,7 +86,7 @@ function StepIndicator({ current }: { current: Step }) {
           {i < 3 && (
             <div
               className={`w-16 h-0.5 mb-4 mx-1 transition-all ${
-                s < current ? 'bg-[#006b54]' : 'bg-gray-200'
+                s < current ? "bg-[#006b54]" : "bg-gray-200"
               }`}
             />
           )}
@@ -131,7 +111,7 @@ function SectionCard({
     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
       <div
         className={`px-6 py-4 flex items-center gap-3 border-b border-gray-100 ${
-          accent || 'bg-gray-50'
+          accent || "bg-gray-50"
         }`}
       >
         <span className="text-[#006b54]">{icon}</span>
@@ -146,29 +126,29 @@ function SectionCard({
 export function AdminBookingPage() {
   // ── Wizard state ──
   const [step, setStep] = useState<Step>(1);
-  const [mode, setMode] = useState<BookingMode>('group');
+  const [mode, setMode] = useState<BookingType>("group");
 
   // ── Step 2: Dates & Rooms ──
-  const [checkIn, setCheckIn] = useState('');
-  const [checkOut, setCheckOut] = useState('');
-  const [monthStart, setMonthStart] = useState('');
+  const [checkIn, setCheckIn] = useState("");
+  const [checkOut, setCheckOut] = useState("");
+  const [monthStart, setMonthStart] = useState("");
   const [monthCount, setMonthCount] = useState(1);
-  const [discountCode, setDiscountCode] = useState('');
+  const [discountCode, setDiscountCode] = useState("");
   const [roomAssignments, setRoomAssignments] = useState<RoomAssignment[]>([
-    { roomTypeId: 'superior', count: 1, extraBeds: 0, includeBreakfast: false },
+    { roomTypeId: "superior", count: 1, extraBeds: 0, includeBreakfast: false },
   ]);
 
   // ── Step 3: Guests ──
-  const [guests, setGuests] = useState<GuestRow[]>([emptyGuest()]);
-  const [notes, setNotes] = useState('');
+  const [guests, setGuests] = useState<Guest[]>([emptyGuest()]);
+  const [notes, setNotes] = useState("");
 
   // ── Step 4: Payment ──
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('qr');
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("qr");
   const [deptInfo, setDeptInfo] = useState<DepartmentInfo>({
-    deptName: '',
-    erpCode: '',
-    contactPerson: '',
-    staffId: '',
+    deptName: "",
+    erpCode: "",
+    contactPerson: "",
+    staffId: "",
   });
   const [submitted, setSubmitted] = useState(false);
 
@@ -176,17 +156,16 @@ export function AdminBookingPage() {
   const getNextDay = (d: string) => {
     const dt = d ? new Date(d) : new Date();
     dt.setDate(dt.getDate() + 1);
-    return dt.toISOString().split('T')[0];
+    return dt.toISOString().split("T")[0];
   };
 
   const nights = (() => {
-    if (mode === 'monthly') return monthCount * 30;
+    if (mode === "monthly") return monthCount * 30;
     if (!checkIn || !checkOut) return 0;
     return Math.max(
       0,
       Math.ceil(
-        (new Date(checkOut).getTime() - new Date(checkIn).getTime()) /
-          86400000,
+        (new Date(checkOut).getTime() - new Date(checkIn).getTime()) / 86400000,
       ),
     );
   })();
@@ -195,11 +174,13 @@ export function AdminBookingPage() {
     const room = ROOMS.find((r) => r.id === ra.roomTypeId);
     if (!room) return sum;
     const baseRate =
-      mode === 'monthly'
+      mode === "monthly"
         ? room.rates.monthly * monthCount
         : room.rates.daily.general * nights * ra.count;
     const extraBedCost =
-      mode === 'monthly' ? 0 : ra.extraBeds * room.extraBedPrice * nights * ra.count;
+      mode === "monthly"
+        ? 0
+        : ra.extraBeds * room.extraBedPrice * nights * ra.count;
     const breakfastCost = ra.includeBreakfast ? 150 * nights * ra.count : 0;
     return sum + baseRate + extraBedCost + breakfastCost;
   }, 0);
@@ -210,7 +191,12 @@ export function AdminBookingPage() {
   const addRoomType = () => {
     setRoomAssignments((prev) => [
       ...prev,
-      { roomTypeId: 'superior', count: 1, extraBeds: 0, includeBreakfast: false },
+      {
+        roomTypeId: "superior",
+        count: 1,
+        extraBeds: 0,
+        includeBreakfast: false,
+      },
     ]);
   };
   const removeRoomType = (i: number) =>
@@ -224,16 +210,16 @@ export function AdminBookingPage() {
   const addGuest = () => setGuests((g) => [...g, emptyGuest()]);
   const removeGuest = (id: string) =>
     setGuests((g) => g.filter((x) => x.id !== id));
-  const updateGuest = (id: string, patch: Partial<GuestRow>) =>
+  const updateGuest = (id: string, patch: Partial<Guest>) =>
     setGuests((g) => g.map((x) => (x.id === id ? { ...x, ...patch } : x)));
 
   // ── Navigation ──
   const canProceed = () => {
     if (step === 2) {
-      if (mode === 'group') return !!(checkIn && checkOut && totalRooms >= 5);
+      if (mode === "group") return !!(checkIn && checkOut && totalRooms >= 5);
       return !!(monthStart && monthCount >= 1 && totalRooms >= 1);
     }
-    if (step === 3) return guests.length > 0 && guests[0].firstName !== '';
+    if (step === 3) return guests.length > 0 && guests[0].firstName !== "";
     return true;
   };
 
@@ -248,9 +234,11 @@ export function AdminBookingPage() {
             <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
               <CheckCircle2 className="w-10 h-10 text-[#006b54] stroke-[2.5]" />
             </div>
-            <h1 className="text-2xl font-bold text-white mb-1">Booking Created!</h1>
+            <h1 className="text-2xl font-bold text-white mb-1">
+              Booking Created!
+            </h1>
             <p className="text-green-100 text-sm">
-              {mode === 'group' ? 'Group' : 'Monthly'} booking has been saved.
+              {mode === "group" ? "Group" : "Monthly"} booking has been saved.
             </p>
           </div>
           <div className="p-8 text-center">
@@ -269,7 +257,9 @@ export function AdminBookingPage() {
               </div>
               <div>
                 <p className="text-gray-500 text-xs mb-0.5">Total</p>
-                <p className="font-bold text-[#006b54]">฿{totalAmount.toLocaleString()}</p>
+                <p className="font-bold text-[#006b54]">
+                  ฿{totalAmount.toLocaleString()}
+                </p>
               </div>
               <div>
                 <p className="text-gray-500 text-xs mb-0.5">Payment</p>
@@ -282,7 +272,12 @@ export function AdminBookingPage() {
                 setStep(1);
                 setGuests([emptyGuest()]);
                 setRoomAssignments([
-                  { roomTypeId: 'superior', count: 1, extraBeds: 0, includeBreakfast: false },
+                  {
+                    roomTypeId: "superior",
+                    count: 1,
+                    extraBeds: 0,
+                    includeBreakfast: false,
+                  },
                 ]);
               }}
               className="w-full bg-[#006b54] hover:bg-[#005a46] text-white py-3 rounded-xl font-bold transition-colors"
@@ -323,31 +318,39 @@ export function AdminBookingPage() {
         {step === 1 && (
           <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
             <div className="text-center mb-8">
-              <h2 className="text-2xl font-bold text-gray-900">Select Booking Type</h2>
-              <p className="text-gray-500 mt-1">Choose how this reservation will be processed</p>
+              <h2 className="text-2xl font-bold text-gray-900">
+                Select Booking Type
+              </h2>
+              <p className="text-gray-500 mt-1">
+                Choose how this reservation will be processed
+              </p>
             </div>
 
             <div className="grid md:grid-cols-2 gap-5">
               {/* Group */}
               <button
-                onClick={() => setMode('group')}
+                onClick={() => setMode("group")}
                 className={`group text-left p-8 rounded-2xl border-2 transition-all duration-200 ${
-                  mode === 'group'
-                    ? 'border-[#006b54] bg-[#006b54]/5 shadow-lg'
-                    : 'border-gray-200 bg-white hover:border-[#006b54]/40 hover:shadow-md'
+                  mode === "group"
+                    ? "border-[#006b54] bg-[#006b54]/5 shadow-lg"
+                    : "border-gray-200 bg-white hover:border-[#006b54]/40 hover:shadow-md"
                 }`}
               >
                 <div
                   className={`w-14 h-14 rounded-xl flex items-center justify-center mb-5 transition-colors ${
-                    mode === 'group' ? 'bg-[#006b54] text-white' : 'bg-gray-100 text-gray-500'
+                    mode === "group"
+                      ? "bg-[#006b54] text-white"
+                      : "bg-gray-100 text-gray-500"
                   }`}
                 >
                   <Users className="w-7 h-7" />
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-2">Group Booking</h3>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">
+                  Group Booking
+                </h3>
                 <p className="text-gray-500 text-sm leading-relaxed">
-                  For groups of <strong>5 rooms or more</strong>. Eligible for group
-                  discount rates. Requires check-in / check-out dates.
+                  For groups of <strong>5 rooms or more</strong>. Eligible for
+                  group discount rates. Requires check-in / check-out dates.
                 </p>
                 <div className="mt-5 flex flex-wrap gap-2">
                   <span className="text-xs bg-blue-50 text-blue-700 font-semibold px-2.5 py-1 rounded-full">
@@ -360,7 +363,7 @@ export function AdminBookingPage() {
                     Split billing
                   </span>
                 </div>
-                {mode === 'group' && (
+                {mode === "group" && (
                   <div className="mt-4 flex items-center text-[#006b54] text-sm font-bold">
                     <CheckCircle2 className="w-4 h-4 mr-1" /> Selected
                   </div>
@@ -369,24 +372,28 @@ export function AdminBookingPage() {
 
               {/* Monthly */}
               <button
-                onClick={() => setMode('monthly')}
+                onClick={() => setMode("monthly")}
                 className={`group text-left p-8 rounded-2xl border-2 transition-all duration-200 ${
-                  mode === 'monthly'
-                    ? 'border-[#006b54] bg-[#006b54]/5 shadow-lg'
-                    : 'border-gray-200 bg-white hover:border-[#006b54]/40 hover:shadow-md'
+                  mode === "monthly"
+                    ? "border-[#006b54] bg-[#006b54]/5 shadow-lg"
+                    : "border-gray-200 bg-white hover:border-[#006b54]/40 hover:shadow-md"
                 }`}
               >
                 <div
                   className={`w-14 h-14 rounded-xl flex items-center justify-center mb-5 transition-colors ${
-                    mode === 'monthly' ? 'bg-[#006b54] text-white' : 'bg-gray-100 text-gray-500'
+                    mode === "monthly"
+                      ? "bg-[#006b54] text-white"
+                      : "bg-gray-100 text-gray-500"
                   }`}
                 >
                   <Repeat className="w-7 h-7" />
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-2">Monthly Booking</h3>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">
+                  Monthly Booking
+                </h3>
                 <p className="text-gray-500 text-sm leading-relaxed">
-                  Long-stay reservation billed <strong>per month</strong>. Ideal for
-                  university personnel or long-term guests.
+                  Long-stay reservation billed <strong>per month</strong>. Ideal
+                  for university personnel or long-term guests.
                 </p>
                 <div className="mt-5 flex flex-wrap gap-2">
                   <span className="text-xs bg-orange-50 text-orange-700 font-semibold px-2.5 py-1 rounded-full">
@@ -399,7 +406,7 @@ export function AdminBookingPage() {
                     Flexible duration
                   </span>
                 </div>
-                {mode === 'monthly' && (
+                {mode === "monthly" && (
                   <div className="mt-4 flex items-center text-[#006b54] text-sm font-bold">
                     <CheckCircle2 className="w-4 h-4 mr-1" /> Selected
                   </div>
@@ -432,9 +439,9 @@ export function AdminBookingPage() {
             {/* Dates */}
             <SectionCard
               icon={<Calendar className="w-5 h-5" />}
-              title={mode === 'group' ? 'Stay Dates' : 'Monthly Period'}
+              title={mode === "group" ? "Stay Dates" : "Monthly Period"}
             >
-              {mode === 'group' ? (
+              {mode === "group" ? (
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-bold text-gray-600 uppercase mb-2">
@@ -446,7 +453,8 @@ export function AdminBookingPage() {
                       value={checkIn}
                       onChange={(e) => {
                         setCheckIn(e.target.value);
-                        if (checkOut && e.target.value >= checkOut) setCheckOut('');
+                        if (checkOut && e.target.value >= checkOut)
+                          setCheckOut("");
                       }}
                       className="w-full border border-gray-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-[#006b54] outline-none"
                     />
@@ -465,7 +473,7 @@ export function AdminBookingPage() {
                   </div>
                   {nights > 0 && (
                     <div className="md:col-span-2 bg-[#006b54]/5 rounded-lg px-4 py-2 text-sm text-[#006b54] font-semibold">
-                      📅 {nights} night{nights !== 1 ? 's' : ''}
+                      📅 {nights} night{nights !== 1 ? "s" : ""}
                     </div>
                   )}
                 </div>
@@ -493,7 +501,9 @@ export function AdminBookingPage() {
                       >
                         <Minus className="w-4 h-4" />
                       </button>
-                      <span className="flex-1 text-center font-bold text-lg">{monthCount}</span>
+                      <span className="flex-1 text-center font-bold text-lg">
+                        {monthCount}
+                      </span>
                       <button
                         onClick={() => setMonthCount((m) => m + 1)}
                         className="px-4 py-3 bg-gray-50 hover:bg-gray-100 text-gray-600 transition-colors"
@@ -507,7 +517,10 @@ export function AdminBookingPage() {
             </SectionCard>
 
             {/* Room Assignments */}
-            <SectionCard icon={<BedDouble className="w-5 h-5" />} title="Room Selection">
+            <SectionCard
+              icon={<BedDouble className="w-5 h-5" />}
+              title="Room Selection"
+            >
               <div className="space-y-4">
                 {roomAssignments.map((ra, i) => {
                   const room = ROOMS.find((r) => r.id === ra.roomTypeId);
@@ -546,7 +559,9 @@ export function AdminBookingPage() {
                             <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden bg-white">
                               <button
                                 onClick={() =>
-                                  updateRA(i, { count: Math.max(1, ra.count - 1) })
+                                  updateRA(i, {
+                                    count: Math.max(1, ra.count - 1),
+                                  })
                                 }
                                 className="px-3 py-2.5 hover:bg-gray-50 text-gray-600"
                               >
@@ -556,7 +571,9 @@ export function AdminBookingPage() {
                                 {ra.count}
                               </span>
                               <button
-                                onClick={() => updateRA(i, { count: ra.count + 1 })}
+                                onClick={() =>
+                                  updateRA(i, { count: ra.count + 1 })
+                                }
                                 className="px-3 py-2.5 hover:bg-gray-50 text-gray-600"
                               >
                                 <Plus className="w-3.5 h-3.5" />
@@ -565,41 +582,46 @@ export function AdminBookingPage() {
                           </div>
 
                           {/* Extra Beds (group only) */}
-                          {mode === 'group' && room && room.maxExtraBeds > 0 && (
-                            <div>
-                              <label className="block text-xs font-bold text-gray-500 uppercase mb-1">
-                                Extra Beds
-                              </label>
-                              <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden bg-white">
-                                <button
-                                  onClick={() =>
-                                    updateRA(i, {
-                                      extraBeds: Math.max(0, ra.extraBeds - 1),
-                                    })
-                                  }
-                                  className="px-3 py-2.5 hover:bg-gray-50 text-gray-600"
-                                >
-                                  <Minus className="w-3.5 h-3.5" />
-                                </button>
-                                <span className="flex-1 text-center font-bold text-sm">
-                                  {ra.extraBeds}
-                                </span>
-                                <button
-                                  onClick={() =>
-                                    updateRA(i, {
-                                      extraBeds: Math.min(
-                                        room.maxExtraBeds,
-                                        ra.extraBeds + 1,
-                                      ),
-                                    })
-                                  }
-                                  className="px-3 py-2.5 hover:bg-gray-50 text-gray-600"
-                                >
-                                  <Plus className="w-3.5 h-3.5" />
-                                </button>
+                          {mode === "group" &&
+                            room &&
+                            room.maxExtraBeds > 0 && (
+                              <div>
+                                <label className="block text-xs font-bold text-gray-500 uppercase mb-1">
+                                  Extra Beds
+                                </label>
+                                <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden bg-white">
+                                  <button
+                                    onClick={() =>
+                                      updateRA(i, {
+                                        extraBeds: Math.max(
+                                          0,
+                                          ra.extraBeds - 1,
+                                        ),
+                                      })
+                                    }
+                                    className="px-3 py-2.5 hover:bg-gray-50 text-gray-600"
+                                  >
+                                    <Minus className="w-3.5 h-3.5" />
+                                  </button>
+                                  <span className="flex-1 text-center font-bold text-sm">
+                                    {ra.extraBeds}
+                                  </span>
+                                  <button
+                                    onClick={() =>
+                                      updateRA(i, {
+                                        extraBeds: Math.min(
+                                          room.maxExtraBeds,
+                                          ra.extraBeds + 1,
+                                        ),
+                                      })
+                                    }
+                                    className="px-3 py-2.5 hover:bg-gray-50 text-gray-600"
+                                  >
+                                    <Plus className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
                               </div>
-                            </div>
-                          )}
+                            )}
                         </div>
 
                         {roomAssignments.length > 1 && (
@@ -631,24 +653,27 @@ export function AdminBookingPage() {
                       {/* Rate preview */}
                       {room && (
                         <div className="mt-3 pt-3 border-t border-gray-200 text-xs text-gray-500 flex gap-4 flex-wrap">
-                          {mode === 'group' ? (
+                          {mode === "group" ? (
                             <>
                               <span>
-                                Group (≥5):{' '}
+                                Group (≥5):{" "}
                                 <strong className="text-gray-800">
-                                  ฿{room.rates.group.min5Rooms.toLocaleString()}/night
+                                  ฿{room.rates.group.min5Rooms.toLocaleString()}
+                                  /night
                                 </strong>
                               </span>
                               <span>
-                                Group (≥10):{' '}
+                                Group (≥10):{" "}
                                 <strong className="text-gray-800">
-                                  ฿{room.rates.group.min10Rooms.toLocaleString()}/night
+                                  ฿
+                                  {room.rates.group.min10Rooms.toLocaleString()}
+                                  /night
                                 </strong>
                               </span>
                             </>
                           ) : (
                             <span>
-                              Monthly rate:{' '}
+                              Monthly rate:{" "}
                               <strong className="text-gray-800">
                                 ฿{room.rates.monthly.toLocaleString()}/month
                               </strong>
@@ -668,10 +693,10 @@ export function AdminBookingPage() {
                 </button>
 
                 {/* Group warning */}
-                {mode === 'group' && totalRooms < 5 && (
+                {mode === "group" && totalRooms < 5 && (
                   <div className="flex items-center gap-2 bg-amber-50 text-amber-700 rounded-lg px-4 py-3 text-sm">
                     <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                    Group booking requires at least 5 rooms. Currently{' '}
+                    Group booking requires at least 5 rooms. Currently{" "}
                     <strong>{totalRooms}</strong>.
                   </div>
                 )}
@@ -679,12 +704,17 @@ export function AdminBookingPage() {
             </SectionCard>
 
             {/* Discount Code */}
-            <SectionCard icon={<Tag className="w-5 h-5" />} title="Discount Code (Optional)">
+            <SectionCard
+              icon={<Tag className="w-5 h-5" />}
+              title="Discount Code (Optional)"
+            >
               <div className="flex gap-3">
                 <input
                   type="text"
                   value={discountCode}
-                  onChange={(e) => setDiscountCode(e.target.value.toUpperCase())}
+                  onChange={(e) =>
+                    setDiscountCode(e.target.value.toUpperCase())
+                  }
                   placeholder="Enter discount code…"
                   className="flex-1 border border-gray-300 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-[#006b54] outline-none font-mono"
                 />
@@ -706,8 +736,8 @@ export function AdminBookingPage() {
                 disabled={!canProceed()}
                 className={`px-8 py-3 rounded-xl font-bold shadow-md transition-all flex items-center gap-2 ${
                   canProceed()
-                    ? 'bg-[#006b54] hover:bg-[#005a46] text-white'
-                    : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                    ? "bg-[#006b54] hover:bg-[#005a46] text-white"
+                    : "bg-gray-200 text-gray-400 cursor-not-allowed"
                 }`}
               >
                 Continue <ChevronRight className="w-4 h-4" />
@@ -725,7 +755,7 @@ export function AdminBookingPage() {
               <SectionCard
                 key={g.id}
                 icon={<User className="w-5 h-5" />}
-                title={`Guest ${idx + 1}${idx === 0 ? ' (Primary Contact)' : ''}`}
+                title={`Guest ${idx + 1}${idx === 0 ? " (Primary Contact)" : ""}`}
               >
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
@@ -734,10 +764,12 @@ export function AdminBookingPage() {
                     </label>
                     <select
                       value={g.title}
-                      onChange={(e) => updateGuest(g.id, { title: e.target.value })}
+                      onChange={(e) =>
+                        updateGuest(g.id || "", { title: e.target.value })
+                      }
                       className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-[#006b54] outline-none"
                     >
-                      {['Mr.', 'Ms.', 'Mrs.', 'Dr.', 'Prof.'].map((t) => (
+                      {["Mr.", "Ms.", "Mrs.", "Dr.", "Prof."].map((t) => (
                         <option key={t}>{t}</option>
                       ))}
                     </select>
@@ -748,7 +780,9 @@ export function AdminBookingPage() {
                         type="checkbox"
                         checked={g.isKuMember}
                         onChange={(e) =>
-                          updateGuest(g.id, { isKuMember: e.target.checked })
+                          updateGuest(g.id || "", {
+                            isKuMember: e.target.checked,
+                          })
                         }
                         className="accent-[#006b54] w-4 h-4"
                       />
@@ -764,7 +798,9 @@ export function AdminBookingPage() {
                     <input
                       type="text"
                       value={g.firstName}
-                      onChange={(e) => updateGuest(g.id, { firstName: e.target.value })}
+                      onChange={(e) =>
+                        updateGuest(g.id || "", { firstName: e.target.value })
+                      }
                       className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-[#006b54] outline-none"
                     />
                   </div>
@@ -775,7 +811,9 @@ export function AdminBookingPage() {
                     <input
                       type="text"
                       value={g.lastName}
-                      onChange={(e) => updateGuest(g.id, { lastName: e.target.value })}
+                      onChange={(e) =>
+                        updateGuest(g.id || "", { lastName: e.target.value })
+                      }
                       className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-[#006b54] outline-none"
                     />
                   </div>
@@ -786,7 +824,9 @@ export function AdminBookingPage() {
                     <input
                       type="text"
                       value={g.idNumber}
-                      onChange={(e) => updateGuest(g.id, { idNumber: e.target.value })}
+                      onChange={(e) =>
+                        updateGuest(g.id || "", { idNumber: e.target.value })
+                      }
                       className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-[#006b54] outline-none"
                     />
                   </div>
@@ -798,7 +838,9 @@ export function AdminBookingPage() {
                     <input
                       type="email"
                       value={g.email}
-                      onChange={(e) => updateGuest(g.id, { email: e.target.value })}
+                      onChange={(e) =>
+                        updateGuest(g.id || "", { email: e.target.value })
+                      }
                       className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-[#006b54] outline-none"
                     />
                   </div>
@@ -810,14 +852,16 @@ export function AdminBookingPage() {
                     <input
                       type="tel"
                       value={g.phone}
-                      onChange={(e) => updateGuest(g.id, { phone: e.target.value })}
+                      onChange={(e) =>
+                        updateGuest(g.id || "", { phone: e.target.value })
+                      }
                       className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-[#006b54] outline-none"
                     />
                   </div>
                 </div>
                 {idx > 0 && (
                   <button
-                    onClick={() => removeGuest(g.id)}
+                    onClick={() => removeGuest(g.id || "")}
                     className="mt-4 text-red-500 hover:text-red-700 text-sm font-medium flex items-center gap-1"
                   >
                     <Trash2 className="w-4 h-4" /> Remove guest
@@ -834,7 +878,10 @@ export function AdminBookingPage() {
             </button>
 
             {/* Notes */}
-            <SectionCard icon={<AlertCircle className="w-5 h-5" />} title="Special Requests / Notes">
+            <SectionCard
+              icon={<AlertCircle className="w-5 h-5" />}
+              title="Special Requests / Notes"
+            >
               <textarea
                 rows={3}
                 value={notes}
@@ -856,8 +903,8 @@ export function AdminBookingPage() {
                 disabled={!canProceed()}
                 className={`px-8 py-3 rounded-xl font-bold shadow-md transition-all flex items-center gap-2 ${
                   canProceed()
-                    ? 'bg-[#006b54] hover:bg-[#005a46] text-white'
-                    : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                    ? "bg-[#006b54] hover:bg-[#005a46] text-white"
+                    : "bg-gray-200 text-gray-400 cursor-not-allowed"
                 }`}
               >
                 Continue <ChevronRight className="w-4 h-4" />
@@ -873,26 +920,41 @@ export function AdminBookingPage() {
           <div className="grid md:grid-cols-5 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
             {/* Left: Payment method */}
             <div className="md:col-span-3 space-y-6">
-              <SectionCard icon={<CreditCard className="w-5 h-5" />} title="Payment Method">
+              <SectionCard
+                icon={<CreditCard className="w-5 h-5" />}
+                title="Payment Method"
+              >
                 <div className="grid grid-cols-3 gap-3 mb-6">
                   {(
                     [
-                      { value: 'qr', label: 'QR Payment', icon: <QrCode className="w-6 h-6" /> },
-                      { value: 'cash', label: 'Cash', icon: <DollarSign className="w-6 h-6" /> },
                       {
-                        value: 'department',
-                        label: 'Dept. Transfer',
+                        value: "qr",
+                        label: "QR Payment",
+                        icon: <QrCode className="w-6 h-6" />,
+                      },
+                      {
+                        value: "cash",
+                        label: "Cash",
+                        icon: <DollarSign className="w-6 h-6" />,
+                      },
+                      {
+                        value: "department",
+                        label: "Dept. Transfer",
                         icon: <Building2 className="w-6 h-6" />,
                       },
-                    ] as { value: PaymentMethod; label: string; icon: React.ReactNode }[]
+                    ] as {
+                      value: PaymentMethod;
+                      label: string;
+                      icon: React.ReactNode;
+                    }[]
                   ).map((m) => (
                     <button
                       key={m.value}
                       onClick={() => setPaymentMethod(m.value)}
                       className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 text-xs font-bold transition-all ${
                         paymentMethod === m.value
-                          ? 'border-[#006b54] bg-[#006b54]/5 text-[#006b54]'
-                          : 'border-gray-200 text-gray-600 hover:border-[#006b54]/30'
+                          ? "border-[#006b54] bg-[#006b54]/5 text-[#006b54]"
+                          : "border-gray-200 text-gray-600 hover:border-[#006b54]/30"
                       }`}
                     >
                       {m.icon}
@@ -901,7 +963,7 @@ export function AdminBookingPage() {
                   ))}
                 </div>
 
-                {paymentMethod === 'qr' && (
+                {paymentMethod === "qr" && (
                   <div className="flex flex-col items-center bg-gray-50 rounded-xl p-6">
                     <div className="w-32 h-32 bg-gray-200 rounded-xl flex items-center justify-center mb-4">
                       <QrCode className="w-16 h-16 text-gray-400" />
@@ -913,19 +975,20 @@ export function AdminBookingPage() {
                   </div>
                 )}
 
-                {paymentMethod === 'cash' && (
+                {paymentMethod === "cash" && (
                   <div className="bg-yellow-50 rounded-xl p-4 text-sm text-yellow-800 font-medium text-center">
-                    💵 Collect cash at front desk. Staff will mark as paid after receiving.
+                    💵 Collect cash at front desk. Staff will mark as paid after
+                    receiving.
                   </div>
                 )}
 
-                {paymentMethod === 'department' && (
+                {paymentMethod === "department" && (
                   <div className="space-y-3">
                     {[
-                      { key: 'deptName', label: 'Department / Faculty' },
-                      { key: 'erpCode', label: 'ERP / Budget Code' },
-                      { key: 'contactPerson', label: 'Contact Person' },
-                      { key: 'staffId', label: 'Staff ID / Employee No.' },
+                      { key: "deptName", label: "Department / Faculty" },
+                      { key: "erpCode", label: "ERP / Budget Code" },
+                      { key: "contactPerson", label: "Contact Person" },
+                      { key: "staffId", label: "Staff ID / Employee No." },
                     ].map(({ key, label }) => (
                       <div key={key}>
                         <label className="block text-xs font-bold text-gray-500 uppercase mb-1.5">
@@ -935,7 +998,10 @@ export function AdminBookingPage() {
                           type="text"
                           value={deptInfo[key as keyof DepartmentInfo]}
                           onChange={(e) =>
-                            setDeptInfo((d) => ({ ...d, [key]: e.target.value }))
+                            setDeptInfo((d) => ({
+                              ...d,
+                              [key]: e.target.value,
+                            }))
                           }
                           className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-[#006b54] outline-none"
                         />
@@ -967,21 +1033,22 @@ export function AdminBookingPage() {
                 <div className="bg-[#006b54] px-5 py-4 text-white">
                   <h3 className="font-bold">Booking Summary</h3>
                   <p className="text-xs text-green-100 mt-0.5 capitalize">
-                    {mode} booking · {totalRooms} room{totalRooms !== 1 ? 's' : ''}
+                    {mode} booking · {totalRooms} room
+                    {totalRooms !== 1 ? "s" : ""}
                   </p>
                 </div>
                 <div className="p-5 space-y-4">
                   {/* Dates */}
                   <div className="text-sm space-y-1">
-                    {mode === 'group' ? (
+                    {mode === "group" ? (
                       <>
                         <div className="flex justify-between">
                           <span className="text-gray-500">Check-in</span>
-                          <span className="font-medium">{checkIn || '—'}</span>
+                          <span className="font-medium">{checkIn || "—"}</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-gray-500">Check-out</span>
-                          <span className="font-medium">{checkOut || '—'}</span>
+                          <span className="font-medium">{checkOut || "—"}</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-gray-500">Duration</span>
@@ -992,11 +1059,15 @@ export function AdminBookingPage() {
                       <>
                         <div className="flex justify-between">
                           <span className="text-gray-500">Start</span>
-                          <span className="font-medium">{monthStart || '—'}</span>
+                          <span className="font-medium">
+                            {monthStart || "—"}
+                          </span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-gray-500">Duration</span>
-                          <span className="font-medium">{monthCount} month{monthCount !== 1 ? 's' : ''}</span>
+                          <span className="font-medium">
+                            {monthCount} month{monthCount !== 1 ? "s" : ""}
+                          </span>
                         </div>
                       </>
                     )}
@@ -1010,7 +1081,7 @@ export function AdminBookingPage() {
                       const room = ROOMS.find((r) => r.id === ra.roomTypeId);
                       if (!room) return null;
                       const rate =
-                        mode === 'monthly'
+                        mode === "monthly"
                           ? room.rates.monthly * monthCount
                           : room.rates.daily.general * nights * ra.count;
                       return (
@@ -1019,15 +1090,20 @@ export function AdminBookingPage() {
                             <span className="text-gray-700 font-medium">
                               {room.name} × {ra.count}
                             </span>
-                            <span className="font-bold">฿{rate.toLocaleString()}</span>
+                            <span className="font-bold">
+                              ฿{rate.toLocaleString()}
+                            </span>
                           </div>
-                          {ra.extraBeds > 0 && mode === 'group' && (
+                          {ra.extraBeds > 0 && mode === "group" && (
                             <div className="flex justify-between text-xs text-gray-500 pl-3">
                               <span>+ {ra.extraBeds} extra bed</span>
                               <span>
                                 ฿
                                 {(
-                                  ra.extraBeds * room.extraBedPrice * nights * ra.count
+                                  ra.extraBeds *
+                                  room.extraBedPrice *
+                                  nights *
+                                  ra.count
                                 ).toLocaleString()}
                               </span>
                             </div>
@@ -1059,9 +1135,12 @@ export function AdminBookingPage() {
                     <>
                       <hr className="border-gray-100" />
                       <div className="text-xs text-gray-500">
-                        <p className="font-bold text-gray-700 mb-1">Primary Guest</p>
+                        <p className="font-bold text-gray-700 mb-1">
+                          Primary Guest
+                        </p>
                         <p>
-                          {guests[0].title} {guests[0].firstName} {guests[0].lastName}
+                          {guests[0].title} {guests[0].firstName}{" "}
+                          {guests[0].lastName}
                         </p>
                         {guests[0].email && <p>{guests[0].email}</p>}
                       </div>
