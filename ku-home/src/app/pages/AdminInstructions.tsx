@@ -61,6 +61,20 @@ export function AdminInstructions() {
       link: "/admin/discounts",
       color: "bg-orange-50 text-orange-700",
     },
+    {
+      title: "booking-assignment",
+      icon: Tag,
+      description: "Create and manage promotional codes with expiry dates",
+      link: "/admin/booking-assignment",
+      color: "bg-orange-50 text-orange-700",
+    },
+    {
+      title: "Billing & Receipts",
+      icon: ClipboardList,
+      description: "Process check-outs, input housekeeping fines, and generate printable receipts",
+      link: "/admin/billing",
+      color: "bg-emerald-50 text-emerald-800",
+    }
   ];
 
   return (

@@ -20,15 +20,9 @@ import {
 } from 'lucide-react';
 import { Input } from "../../components/ui/input.tsx";
 import { toast } from 'sonner';
+import { RoomStatus } from "../../../models/index.ts";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
-type RoomStatus =
-  | 'available'
-  | 'booked'
-  | 'checked_in'
-  | 'checked_out'
-  | 'repair'
-  | 'unavailable';
 
 interface RoomRecord {
   id: string;

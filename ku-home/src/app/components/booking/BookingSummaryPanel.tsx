@@ -40,7 +40,7 @@ export function BookingSummaryPanel({
   const discount = isKuMember ? room.rates.daily.general - room.rates.daily.personnel : 0;
   const breakfastCost = includeBreakfast ? BREAKFAST_PRICE * guests * nights : 0;
   const extraBedCost = extraBeds * room.extraBedPrice * nights;
-  const total = (roomRate - 0) * nights + breakfastCost + extraBedCost;
+  const total = (roomRate - discount) * nights + breakfastCost + extraBedCost;
 
   return (
     <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 sticky top-24">
@@ -114,9 +114,8 @@ export function BookingSummaryPanel({
       <div className="mb-5">
         <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-3">Add-on Services</p>
         <label
-          className={`flex items-start gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all ${
-            includeBreakfast ? "border-[#006b54] bg-[#006b54]/5" : "border-gray-200 hover:border-gray-300"
-          }`}
+          className={`flex items-start gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all ${includeBreakfast ? "border-[#006b54] bg-[#006b54]/5" : "border-gray-200 hover:border-gray-300"
+            }`}
         >
           <input
             type="checkbox"

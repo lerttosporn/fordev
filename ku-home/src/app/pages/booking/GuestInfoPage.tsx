@@ -35,8 +35,6 @@ export function GuestInfoPage() {
     if (checkOut && val >= checkOut) setCheckOut("");
   };
 
-  const nights = calcNights(checkIn, checkOut) || 1;
-
   return (
     <div className="bg-gray-50 min-h-screen pb-20">
       <BookingSteps currentStep={2} />
@@ -118,14 +116,12 @@ function KuMemberSection({ isKuMember, onToggle }: { isKuMember: boolean; onTogg
       <div className="flex items-center mb-4">
         <button
           onClick={onToggle}
-          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-            isKuMember ? "bg-[#006b54]" : "bg-gray-200"
-          }`}
+          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${isKuMember ? "bg-[#006b54]" : "bg-gray-200"
+            }`}
         >
           <span
-            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-              isKuMember ? "translate-x-6" : "translate-x-1"
-            }`}
+            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${isKuMember ? "translate-x-6" : "translate-x-1"
+              }`}
           />
         </button>
         <span className="ml-3 text-sm font-medium text-gray-900">

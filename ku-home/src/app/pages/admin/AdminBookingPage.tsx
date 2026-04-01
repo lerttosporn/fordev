@@ -56,6 +56,8 @@ const STEP_LABELS: Record<Step, string> = {
   4: "Payment",
 };
 
+const rooms_type = ROOMS;
+
 // ─── Sub-components ──────────────────────────────────────────────────────────
 
 function StepIndicator({ current }: { current: Step }) {
@@ -65,29 +67,26 @@ function StepIndicator({ current }: { current: Step }) {
         <div key={s} className="flex items-center">
           <div className="flex flex-col items-center">
             <div
-              className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold border-2 transition-all ${
-                s < current
+              className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold border-2 transition-all ${s < current
                   ? "bg-[#006b54] border-[#006b54] text-white"
                   : s === current
                     ? "border-[#006b54] text-[#006b54] bg-white ring-4 ring-[#006b54]/20"
                     : "border-gray-200 text-gray-400 bg-white"
-              }`}
+                }`}
             >
               {s < current ? <CheckCircle2 className="w-4 h-4" /> : s}
             </div>
             <span
-              className={`text-[10px] mt-1 font-medium uppercase tracking-wide ${
-                s === current ? "text-[#006b54]" : "text-gray-400"
-              }`}
+              className={`text-[10px] mt-1 font-medium uppercase tracking-wide ${s === current ? "text-[#006b54]" : "text-gray-400"
+                }`}
             >
               {STEP_LABELS[s]}
             </span>
           </div>
           {i < 3 && (
             <div
-              className={`w-16 h-0.5 mb-4 mx-1 transition-all ${
-                s < current ? "bg-[#006b54]" : "bg-gray-200"
-              }`}
+              className={`w-16 h-0.5 mb-4 mx-1 transition-all ${s < current ? "bg-[#006b54]" : "bg-gray-200"
+                }`}
             />
           )}
         </div>
@@ -110,9 +109,8 @@ function SectionCard({
   return (
     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
       <div
-        className={`px-6 py-4 flex items-center gap-3 border-b border-gray-100 ${
-          accent || "bg-gray-50"
-        }`}
+        className={`px-6 py-4 flex items-center gap-3 border-b border-gray-100 ${accent || "bg-gray-50"
+          }`}
       >
         <span className="text-[#006b54]">{icon}</span>
         <h3 className="font-bold text-gray-900">{title}</h3>
@@ -330,18 +328,16 @@ export function AdminBookingPage() {
               {/* Group */}
               <button
                 onClick={() => setMode("group")}
-                className={`group text-left p-8 rounded-2xl border-2 transition-all duration-200 ${
-                  mode === "group"
+                className={`group text-left p-8 rounded-2xl border-2 transition-all duration-200 ${mode === "group"
                     ? "border-[#006b54] bg-[#006b54]/5 shadow-lg"
                     : "border-gray-200 bg-white hover:border-[#006b54]/40 hover:shadow-md"
-                }`}
+                  }`}
               >
                 <div
-                  className={`w-14 h-14 rounded-xl flex items-center justify-center mb-5 transition-colors ${
-                    mode === "group"
+                  className={`w-14 h-14 rounded-xl flex items-center justify-center mb-5 transition-colors ${mode === "group"
                       ? "bg-[#006b54] text-white"
                       : "bg-gray-100 text-gray-500"
-                  }`}
+                    }`}
                 >
                   <Users className="w-7 h-7" />
                 </div>
@@ -373,18 +369,16 @@ export function AdminBookingPage() {
               {/* Monthly */}
               <button
                 onClick={() => setMode("monthly")}
-                className={`group text-left p-8 rounded-2xl border-2 transition-all duration-200 ${
-                  mode === "monthly"
+                className={`group text-left p-8 rounded-2xl border-2 transition-all duration-200 ${mode === "monthly"
                     ? "border-[#006b54] bg-[#006b54]/5 shadow-lg"
                     : "border-gray-200 bg-white hover:border-[#006b54]/40 hover:shadow-md"
-                }`}
+                  }`}
               >
                 <div
-                  className={`w-14 h-14 rounded-xl flex items-center justify-center mb-5 transition-colors ${
-                    mode === "monthly"
+                  className={`w-14 h-14 rounded-xl flex items-center justify-center mb-5 transition-colors ${mode === "monthly"
                       ? "bg-[#006b54] text-white"
                       : "bg-gray-100 text-gray-500"
-                  }`}
+                    }`}
                 >
                   <Repeat className="w-7 h-7" />
                 </div>
@@ -734,11 +728,10 @@ export function AdminBookingPage() {
               <button
                 onClick={() => canProceed() && setStep(3)}
                 disabled={!canProceed()}
-                className={`px-8 py-3 rounded-xl font-bold shadow-md transition-all flex items-center gap-2 ${
-                  canProceed()
+                className={`px-8 py-3 rounded-xl font-bold shadow-md transition-all flex items-center gap-2 ${canProceed()
                     ? "bg-[#006b54] hover:bg-[#005a46] text-white"
                     : "bg-gray-200 text-gray-400 cursor-not-allowed"
-                }`}
+                  }`}
               >
                 Continue <ChevronRight className="w-4 h-4" />
               </button>
@@ -901,11 +894,10 @@ export function AdminBookingPage() {
               <button
                 onClick={() => canProceed() && setStep(4)}
                 disabled={!canProceed()}
-                className={`px-8 py-3 rounded-xl font-bold shadow-md transition-all flex items-center gap-2 ${
-                  canProceed()
+                className={`px-8 py-3 rounded-xl font-bold shadow-md transition-all flex items-center gap-2 ${canProceed()
                     ? "bg-[#006b54] hover:bg-[#005a46] text-white"
                     : "bg-gray-200 text-gray-400 cursor-not-allowed"
-                }`}
+                  }`}
               >
                 Continue <ChevronRight className="w-4 h-4" />
               </button>
@@ -951,11 +943,10 @@ export function AdminBookingPage() {
                     <button
                       key={m.value}
                       onClick={() => setPaymentMethod(m.value)}
-                      className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 text-xs font-bold transition-all ${
-                        paymentMethod === m.value
+                      className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 text-xs font-bold transition-all ${paymentMethod === m.value
                           ? "border-[#006b54] bg-[#006b54]/5 text-[#006b54]"
                           : "border-gray-200 text-gray-600 hover:border-[#006b54]/30"
-                      }`}
+                        }`}
                     >
                       {m.icon}
                       {m.label}

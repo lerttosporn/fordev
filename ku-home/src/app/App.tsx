@@ -22,6 +22,8 @@ import { AdminInstructions } from "./pages/AdminInstructions.tsx";
 import { AdminBookingPage } from "./pages/admin/AdminBookingPage.tsx";
 import { UserManagement } from "./pages/admin/UserManagement.tsx";
 import { DiscountCodePage } from "./pages/admin/DiscountCodePage.tsx";
+import { BookingAssignmentPage } from "./pages/admin/BookingAssignmentPage.tsx";
+import { AdminBillingPage } from "./pages/admin/AdminBillingPage.tsx";
 
 export default function App() {
   return (
@@ -53,6 +55,8 @@ export default function App() {
             <Route path="admin/booking" element={<AdminBookingPage />} />
             <Route path="admin/users" element={<UserManagement />} />
             <Route path="admin/discounts" element={<DiscountCodePage />} />
+            <Route path="admin/booking-assignment" element={<BookingAssignmentPage />} />
+            <Route path="admin/billing" element={<AdminBillingPage />} />
           </Route>
         </Routes>
       </BrowserRouter>
