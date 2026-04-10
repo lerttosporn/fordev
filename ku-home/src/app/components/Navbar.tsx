@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X, User, LogIn, LogOut } from "lucide-react";
+import { Menu, X, User, LogIn, LogOut, LayoutDashboard } from "lucide-react";
 import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { useAuth } from "../contexts/AuthContext.tsx";
@@ -180,6 +180,15 @@ export function Navbar() {
                     >
                       <User className="w-5 h-5 mr-3" /> My Profile
                     </Link>
+                    {(user.role === 'admin' || user.role === 'staff') && (
+                      <Link
+                        to="/admin"
+                        className="block px-3 py-3 rounded-md text-base font-medium text-gray-700 hover:text-[#006b54] hover:bg-gray-50 flex items-center"
+                        onClick={() => setIsOpen(false)}
+                      >
+                        <LayoutDashboard className="w-5 h-5 mr-3" /> Admin Portal
+                      </Link>
+                    )}
                     <button
                       onClick={() => {
                         handleSignOut();

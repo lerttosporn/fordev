@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { BedDouble, Coffee } from "lucide-react";
 import { BREAKFAST_PRICE } from "../../../utils/bookingUtils.ts";
 import { RoomType } from "../../models/index.ts";
+import { useEffect } from "react";
 
 interface BookingSidebarProps {
   room: RoomType;
@@ -46,7 +47,9 @@ function Counter({
       >
         -
       </button>
-      <span className="px-2 font-medium text-gray-900 w-6 text-center">{value}</span>
+      <span className="px-2 font-medium text-gray-900 w-6 text-center">
+        {value}
+      </span>
       <button
         onClick={onIncrement}
         disabled={disableIncrement}
@@ -81,20 +84,26 @@ export function BookingSidebar({
   return (
     <div className="sticky top-24 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
       <div className="bg-[#006b54] p-4 text-white text-center">
-        <span className="text-sm font-medium opacity-90">Best Price Guarantee</span>
+        <span className="text-sm font-medium opacity-90">
+          Best Price Guarantee
+        </span>
       </div>
 
       <div className="p-6">
         {/* Price display */}
-        <div className="flex justify-between items-center mb-6">
+        <div className="flex justify-between items-center mb-6">     
           <div>
-            <p className="text-gray-500 text-xs uppercase tracking-wide mb-1">Public Rate</p>
+            <p className="text-gray-500 text-xs uppercase tracking-wide mb-1">
+              Public Rate
+            </p>
             <div className="text-2xl font-bold text-gray-900">
               {priceSummary.generalTotal.toLocaleString()} THB
             </div>
           </div>
           <div className="text-right">
-            <p className="text-[#006b54] text-xs uppercase tracking-wide font-bold mb-1">KU Personnel</p>
+            <p className="text-[#006b54] text-xs uppercase tracking-wide font-bold mb-1">
+              KU Personnel
+            </p>
             <div className="text-2xl font-bold text-[#006b54]">
               {priceSummary.personnelTotal.toLocaleString()} THB
             </div>
@@ -106,7 +115,9 @@ export function BookingSidebar({
         <div className="space-y-4 mb-6">
           {/* Check-in */}
           <div>
-            <label className="block text-xs font-bold text-gray-700 uppercase mb-2">Check-in</label>
+            <label className="block text-xs font-bold text-gray-700 uppercase mb-2">
+              Check-in
+            </label>
             <input
               type="date"
               min={todayStr}
@@ -118,7 +129,9 @@ export function BookingSidebar({
 
           {/* Check-out */}
           <div>
-            <label className="block text-xs font-bold text-gray-700 uppercase mb-2">Check-out</label>
+            <label className="block text-xs font-bold text-gray-700 uppercase mb-2">
+              Check-out
+            </label>
             <input
               type="date"
               min={minCheckOut}
@@ -130,11 +143,13 @@ export function BookingSidebar({
 
           {/* Guests */}
           <div className="flex justify-between items-center">
-            <span className="text-xs font-bold text-gray-700 uppercase">Guests</span>
+            <span className="text-xs font-bold text-gray-700 uppercase">
+              Guests
+            </span>
             <Counter
               value={guests}
-              onDecrement={() => onGuestsChange(-1)}
-              onIncrement={() => onGuestsChange(1)}
+              onDecrement={() => onGuestsChange(guests - 1)}
+              onIncrement={() => onGuestsChange(guests + 1)}
               disableDecrement={guests <= 1}
               disableIncrement={guests >= room.maxGuests}
             />
@@ -143,7 +158,9 @@ export function BookingSidebar({
           {/* Breakfast */}
           <label
             className={`flex items-start gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all ${
-              includeBreakfast ? "border-[#006b54] bg-[#006b54]/5" : "border-gray-200 hover:border-gray-300"
+              includeBreakfast
+                ? "border-[#006b54] bg-[#006b54]/5"
+                : "border-gray-200 hover:border-gray-300"
             }`}
           >
             <input
@@ -155,14 +172,24 @@ export function BookingSidebar({
             <div className="flex-1">
               <div className="flex items-center gap-1.5">
                 <Coffee className="w-4 h-4 text-[#006b54]" />
-                <span className="text-sm font-semibold text-gray-900">Breakfast</span>
+                <span className="text-sm font-semibold text-gray-900">
+                  Breakfast
+                </span>
               </div>
               <p className="text-xs text-gray-500 mt-0.5">
-                ฿{BREAKFAST_PRICE}/person/night · {guests} guests × {Math.max(nights, 1)} nights
+                ฿{BREAKFAST_PRICE}/person/night · {guests} guests ×{" "}
+                {Math.max(nights, 1)} nights
               </p>
             </div>
-            <span className={`text-sm font-bold flex-shrink-0 ${includeBreakfast ? "text-[#006b54]" : "text-gray-400"}`}>
-              +฿{(BREAKFAST_PRICE * guests * Math.max(nights, 1)).toLocaleString()}
+            <span
+              className={`text-sm font-bold flex-shrink-0 ${includeBreakfast ? "text-[#006b54]" : "text-gray-400"}`}
+            >
+              +฿
+              {(
+                BREAKFAST_PRICE *
+                guests *
+                Math.max(nights, 1)
+              ).toLocaleString()}
             </span>
           </label>
 
@@ -174,20 +201,24 @@ export function BookingSidebar({
                   <BedDouble className="w-4 h-4 mr-1 text-[#006b54]" />
                   Extra Bed
                 </label>
-                <span className="text-xs text-[#006b54] font-bold">+{room.extraBedPrice} THB/night</span>
+                <span className="text-xs text-[#006b54] font-bold">
+                  +{room.extraBedPrice} THB/night
+                </span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-600">Need extra bed?</span>
                 <Counter
                   value={extraBeds}
-                  onDecrement={() => onExtraBedsChange(-1)}
-                  onIncrement={() => onExtraBedsChange(1)}
+                  onDecrement={() => onExtraBedsChange(extraBeds - 1)}
+                  onIncrement={() => onExtraBedsChange(extraBeds + 1)}
                   disableDecrement={extraBeds === 0}
                   disableIncrement={extraBeds >= room.maxExtraBeds}
                 />
               </div>
               {extraBeds > 0 && (
-                <p className="text-xs text-gray-500 mt-2">Max {room.maxExtraBeds} extra bed(s) allowed.</p>
+                <p className="text-xs text-gray-500 mt-2">
+                  Max {room.maxExtraBeds} extra bed(s) allowed.
+                </p>
               )}
             </div>
           )}
@@ -212,7 +243,9 @@ export function BookingSidebar({
           Book Now
         </Link>
 
-        <p className="text-xs text-center text-gray-400 mt-4">No credit card required for reservation.</p>
+        <p className="text-xs text-center text-gray-400 mt-4">
+          No credit card required for reservation.
+        </p>
       </div>
     </div>
   );

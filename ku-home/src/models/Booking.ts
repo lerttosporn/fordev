@@ -13,7 +13,7 @@ export type BookingStatus =
   | 'no-pay'
   | 'no-show';
 
-export type BookingType = 'individual' | 'group' | 'monthly';
+export type BookingType = 'individual' | 'group' | 'monthly' | 'meeting' | 'restaurant';
 
 // ─── Guest ────────────────────────────────────────────────────────────────────
 

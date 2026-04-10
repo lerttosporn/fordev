@@ -12,6 +12,7 @@ import {
   Clock,
   AlertCircle,
   Check,
+  Pencil,
 } from "lucide-react";
 import { Input } from "../../components/ui/input.tsx";
 import { Badge } from "../../components/ui/badge.tsx";
@@ -361,14 +362,69 @@ function AssignModal({
   );
 }
 
+// ─── Edit Dates Modal ─────────────────────────────────────────────────────────
+
+function EditDatesModal({
+  booking,
+  onClose,
+  onSave,
+}: {
+  booking: PendingBooking;
+  onClose: () => void;
+  onSave: (bookingId: string, newCheckIn: string, newCheckOut: string) => void;
+}) {
+  const [ci, setCi] = useState(booking.checkIn);
+  const [co, setCo] = useState(booking.checkOut);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden">
+        <div className="bg-[#006b54] px-6 py-4 flex items-center justify-between">
+          <h2 className="text-white font-bold text-lg">แก้ไขวันที่เข้าพัก</h2>
+          <button onClick={onClose} className="text-white/70 hover:text-white p-1">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+        <div className="p-6 space-y-4">
+          <div>
+            <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Check-in</label>
+            <Input type="date" value={ci} onChange={(e) => setCi(e.target.value)} />
+          </div>
+          <div>
+            <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Check-out</label>
+            <Input type="date" value={co} onChange={(e) => setCo(e.target.value)} />
+          </div>
+        </div>
+        <div className="px-6 py-4 border-t border-gray-100 flex gap-3">
+          <button
+            onClick={onClose}
+            className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+          >
+            ยกเลิก
+          </button>
+          <button
+            onClick={() => onSave(booking.id, ci, co)}
+            disabled={!ci || !co || ci >= co}
+            className="flex-1 px-4 py-2.5 rounded-xl bg-[#006b54] hover:bg-[#005a46] text-white text-sm font-bold shadow-md disabled:bg-gray-200 disabled:text-gray-400"
+          >
+            บันทึก
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Booking Card ─────────────────────────────────────────────────────────────
 
 function BookingCard({
   booking,
   onAssign,
+  onEditDates,
 }: {
   booking: PendingBooking;
   onAssign: () => void;
+  onEditDates: () => void;
 }) {
   const col = ROOM_TYPE_COLOR[booking.roomType];
   const st = STATUS_LABEL[booking.status];
@@ -407,12 +463,18 @@ function BookingCard({
     </div>
 
     {/* Dates row */}
-    <div className="flex items-center gap-3 text-sm text-gray-600 mb-3">
-      <Calendar className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
-      <span>{formatDate(booking.checkIn)}</span>
-      <span className="text-gray-300">→</span>
-      <span>{formatDate(booking.checkOut)}</span>
-      <span className="text-gray-400">({booking.nights} คืน)</span>
+    <div className="flex items-center justify-between gap-3 text-sm text-gray-600 mb-3">
+      <div className="flex items-center gap-2 flex-wrap">
+        <Calendar className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+        <span>{formatDate(booking.checkIn)}</span>
+        <span className="text-gray-300">→</span>
+        <span>{formatDate(booking.checkOut)}</span>
+      </div>
+      {booking.assignedRoom && (
+        <button onClick={onEditDates} className="flex items-center gap-1 text-[#006b54] font-medium text-xs hover:underline flex-shrink-0">
+          <Pencil className="w-3 h-3" /> แก้ไขวันที่
+        </button>
+      )}
     </div>
 
     {/* Info chips */}
@@ -494,6 +556,7 @@ export function BookingAssignmentPage() {
   const [filterType, setFilterType] = useState<RoomTypeName | "all">("all");
   const [filterStatus, setFilterStatus] = useState<"pending" | "assigned" | "all">("all");
   const [modalBooking, setModalBooking] = useState<PendingBooking | null>(null);
+  const [editModalBooking, setEditModalBooking] = useState<PendingBooking | null>(null);
 
   // rooms already used (by other assigned bookings)
   const usedRooms = useMemo(
@@ -533,6 +596,22 @@ export function BookingAssignmentPage() {
     const booking = bookings.find((b) => b.id === bookingId);
     toast.success(`Assign ห้อง ${roomNumber} ให้ ${booking?.guestName} สำเร็จ`);
     setModalBooking(null);
+  };
+
+  const handleUpdateDates = (bookingId: string, checkIn: string, checkOut: string) => {
+    setBookings((prev) =>
+      prev.map((b) => {
+        if (b.id === bookingId) {
+          const ci = new Date(checkIn);
+          const co = new Date(checkOut);
+          const nights = Math.max(1, Math.ceil((co.getTime() - ci.getTime()) / 86400000));
+          return { ...b, checkIn, checkOut, nights };
+        }
+        return b;
+      })
+    );
+    toast.success("อัปเดตวันที่เข้าพักสำเร็จ");
+    setEditModalBooking(null);
   };
 
   return (
@@ -670,6 +749,7 @@ export function BookingAssignmentPage() {
                   key={booking.id}
                   booking={booking}
                   onAssign={() => setModalBooking(booking)}
+                  onEditDates={() => setEditModalBooking(booking)}
                 />
               ))}
           </div>
@@ -687,6 +767,15 @@ export function BookingAssignmentPage() {
           usedRooms={usedRooms}
           onClose={() => setModalBooking(null)}
           onAssign={handleAssign}
+        />
+      )}
+
+      {/* Edit Dates Modal */}
+      {editModalBooking && (
+        <EditDatesModal
+          booking={editModalBooking}
+          onClose={() => setEditModalBooking(null)}
+          onSave={handleUpdateDates}
         />
       )}
     </div>

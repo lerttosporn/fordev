@@ -136,6 +136,12 @@ export function AdminBookingPage() {
     { roomTypeId: "superior", count: 1, extraBeds: 0, includeBreakfast: false },
   ]);
 
+  // ── Step 2: Meeting / Restaurant ──
+  const [facilityDate, setFacilityDate] = useState("");
+  const [facilityTime, setFacilityTime] = useState("");
+  const [facilityType, setFacilityType] = useState("standard");
+  const [facilityPax, setFacilityPax] = useState(1);
+
   // ── Step 3: Guests ──
   const [guests, setGuests] = useState<Guest[]>([emptyGuest()]);
   const [notes, setNotes] = useState("");
@@ -168,20 +174,28 @@ export function AdminBookingPage() {
     );
   })();
 
-  const totalAmount = roomAssignments.reduce((sum, ra) => {
-    const room = ROOMS.find((r) => r.id === ra.roomTypeId);
-    if (!room) return sum;
-    const baseRate =
-      mode === "monthly"
-        ? room.rates.monthly * monthCount
-        : room.rates.daily.general * nights * ra.count;
-    const extraBedCost =
-      mode === "monthly"
-        ? 0
-        : ra.extraBeds * room.extraBedPrice * nights * ra.count;
-    const breakfastCost = ra.includeBreakfast ? 150 * nights * ra.count : 0;
-    return sum + baseRate + extraBedCost + breakfastCost;
-  }, 0);
+  const totalAmount = (() => {
+    if (mode === "meeting") {
+      return facilityType === "large" ? 5000 : 2500;
+    }
+    if (mode === "restaurant") {
+      return facilityType === "private" ? 1000 : 0;
+    }
+    return roomAssignments.reduce((sum, ra) => {
+      const room = ROOMS.find((r) => r.id === ra.roomTypeId);
+      if (!room) return sum;
+      const baseRate =
+        mode === "monthly"
+          ? room.rates.monthly * monthCount
+          : room.rates.daily.general * nights * ra.count;
+      const extraBedCost =
+        mode === "monthly"
+          ? 0
+          : ra.extraBeds * room.extraBedPrice * nights * ra.count;
+      const breakfastCost = ra.includeBreakfast ? 150 * nights * ra.count : 0;
+      return sum + baseRate + extraBedCost + breakfastCost;
+    }, 0);
+  })();
 
   const totalRooms = roomAssignments.reduce((s, ra) => s + ra.count, 0);
 
@@ -214,6 +228,9 @@ export function AdminBookingPage() {
   // ── Navigation ──
   const canProceed = () => {
     if (step === 2) {
+      if (mode === "meeting" || mode === "restaurant") {
+        return !!(facilityDate && facilityTime && facilityPax >= 1);
+      }
       if (mode === "group") return !!(checkIn && checkOut && totalRooms >= 5);
       return !!(monthStart && monthCount >= 1 && totalRooms >= 1);
     }
@@ -236,7 +253,7 @@ export function AdminBookingPage() {
               Booking Created!
             </h1>
             <p className="text-green-100 text-sm">
-              {mode === "group" ? "Group" : "Monthly"} booking has been saved.
+              {mode.charAt(0).toUpperCase() + mode.slice(1)} booking has been saved.
             </p>
           </div>
           <div className="p-8 text-center">
@@ -250,8 +267,12 @@ export function AdminBookingPage() {
                 <p className="font-bold capitalize">{mode}</p>
               </div>
               <div>
-                <p className="text-gray-500 text-xs mb-0.5">Rooms</p>
-                <p className="font-bold">{totalRooms} rooms</p>
+                <p className="text-gray-500 text-xs mb-0.5">
+                  {mode === "meeting" || mode === "restaurant" ? "Pax / People" : "Rooms"}
+                </p>
+                <p className="font-bold">
+                  {mode === "meeting" || mode === "restaurant" ? `${facilityPax} pax` : `${totalRooms} rooms`}
+                </p>
               </div>
               <div>
                 <p className="text-gray-500 text-xs mb-0.5">Total</p>
@@ -406,6 +427,80 @@ export function AdminBookingPage() {
                   </div>
                 )}
               </button>
+
+              {/* Meeting Room */}
+              <button
+                onClick={() => setMode("meeting")}
+                className={`group text-left p-8 rounded-2xl border-2 transition-all duration-200 ${mode === "meeting"
+                    ? "border-[#006b54] bg-[#006b54]/5 shadow-lg"
+                    : "border-gray-200 bg-white hover:border-[#006b54]/40 hover:shadow-md"
+                  }`}
+              >
+                <div
+                  className={`w-14 h-14 rounded-xl flex items-center justify-center mb-5 transition-colors ${mode === "meeting"
+                      ? "bg-[#006b54] text-white"
+                      : "bg-gray-100 text-gray-500"
+                    }`}
+                >
+                  <Building2 className="w-7 h-7" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">
+                  Meeting Room
+                </h3>
+                <p className="text-gray-500 text-sm leading-relaxed">
+                  For conferences, seminars, and meetings. Choose from our various fully-equipped rooms.
+                </p>
+                <div className="mt-5 flex flex-wrap gap-2">
+                  <span className="text-xs bg-blue-50 text-blue-700 font-semibold px-2.5 py-1 rounded-full">
+                    Hourly / Daily
+                  </span>
+                  <span className="text-xs bg-purple-50 text-purple-700 font-semibold px-2.5 py-1 rounded-full">
+                    Catering available
+                  </span>
+                </div>
+                {mode === "meeting" && (
+                  <div className="mt-4 flex items-center text-[#006b54] text-sm font-bold">
+                    <CheckCircle2 className="w-4 h-4 mr-1" /> Selected
+                  </div>
+                )}
+              </button>
+
+              {/* Restaurant */}
+              <button
+                onClick={() => setMode("restaurant")}
+                className={`group text-left p-8 rounded-2xl border-2 transition-all duration-200 ${mode === "restaurant"
+                    ? "border-[#006b54] bg-[#006b54]/5 shadow-lg"
+                    : "border-gray-200 bg-white hover:border-[#006b54]/40 hover:shadow-md"
+                  }`}
+              >
+                <div
+                  className={`w-14 h-14 rounded-xl flex items-center justify-center mb-5 transition-colors ${mode === "restaurant"
+                      ? "bg-[#006b54] text-white"
+                      : "bg-gray-100 text-gray-500"
+                    }`}
+                >
+                  <Coffee className="w-7 h-7" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">
+                  Restaurant
+                </h3>
+                <p className="text-gray-500 text-sm leading-relaxed">
+                  Reserve a table or a private dining room for your special occasions or group meals.
+                </p>
+                <div className="mt-5 flex flex-wrap gap-2">
+                  <span className="text-xs bg-orange-50 text-orange-700 font-semibold px-2.5 py-1 rounded-full">
+                    Table reservation
+                  </span>
+                  <span className="text-xs bg-green-50 text-green-700 font-semibold px-2.5 py-1 rounded-full">
+                    Private room
+                  </span>
+                </div>
+                {mode === "restaurant" && (
+                  <div className="mt-4 flex items-center text-[#006b54] text-sm font-bold">
+                    <CheckCircle2 className="w-4 h-4 mr-1" /> Selected
+                  </div>
+                )}
+              </button>
             </div>
 
             <div className="flex justify-between pt-4">
@@ -431,6 +526,7 @@ export function AdminBookingPage() {
         {step === 2 && (
           <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
             {/* Dates */}
+            {(mode === "group" || mode === "monthly") && (
             <SectionCard
               icon={<Calendar className="w-5 h-5" />}
               title={mode === "group" ? "Stay Dates" : "Monthly Period"}
@@ -509,8 +605,88 @@ export function AdminBookingPage() {
                 </div>
               )}
             </SectionCard>
+            )}
+
+            {/* Facility/Meeting/Restaurant Dates */}
+            {(mode === "meeting" || mode === "restaurant") && (
+            <SectionCard
+              icon={<Calendar className="w-5 h-5" />}
+              title={mode === "meeting" ? "Meeting Details" : "Restaurant Reservation"}
+            >
+              <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-gray-600 uppercase mb-2">
+                      Date
+                    </label>
+                    <input
+                      type="date"
+                      min={today()}
+                      value={facilityDate}
+                      onChange={(e) => setFacilityDate(e.target.value)}
+                      className="w-full border border-gray-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-[#006b54] outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-gray-600 uppercase mb-2">
+                      Time
+                    </label>
+                    <input
+                      type="time"
+                      value={facilityTime}
+                      onChange={(e) => setFacilityTime(e.target.value)}
+                      className="w-full border border-gray-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-[#006b54] outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-gray-500 uppercase mb-2">
+                      {mode === "meeting" ? "Meeting Room" : "Table/Room Type"}
+                    </label>
+                    <select
+                      value={facilityType}
+                      onChange={(e) => setFacilityType(e.target.value)}
+                      className="w-full border border-gray-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-[#006b54] outline-none bg-white"
+                    >
+                      {mode === "meeting" ? (
+                        <>
+                          <option value="standard">Standard Room (up to 10 pax)</option>
+                          <option value="large">Large Conference Room (up to 50 pax)</option>
+                        </>
+                      ) : (
+                        <>
+                          <option value="standard">Standard Table</option>
+                          <option value="private">Private VIP Room</option>
+                        </>
+                      )}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-gray-500 uppercase mb-2">
+                      Number of People
+                    </label>
+                    <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden bg-white">
+                      <button
+                        onClick={() => setFacilityPax((p) => Math.max(1, p - 1))}
+                        className="px-4 py-3 hover:bg-gray-50 text-gray-600 border-r border-gray-300"
+                      >
+                        <Minus className="w-4 h-4" />
+                      </button>
+                      <span className="flex-1 text-center font-bold text-lg">
+                        {facilityPax}
+                      </span>
+                      <button
+                        onClick={() => setFacilityPax((p) => p + 1)}
+                        className="px-4 py-3 hover:bg-gray-50 text-gray-600 border-l border-gray-300"
+                      >
+                        <Plus className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+              </div>
+            </SectionCard>
+            )}
 
             {/* Room Assignments */}
+            {(mode === "group" || mode === "monthly") && (
             <SectionCard
               icon={<BedDouble className="w-5 h-5" />}
               title="Room Selection"
@@ -696,6 +872,7 @@ export function AdminBookingPage() {
                 )}
               </div>
             </SectionCard>
+            )}
 
             {/* Discount Code */}
             <SectionCard
@@ -1031,7 +1208,22 @@ export function AdminBookingPage() {
                 <div className="p-5 space-y-4">
                   {/* Dates */}
                   <div className="text-sm space-y-1">
-                    {mode === "group" ? (
+                    {mode === "meeting" || mode === "restaurant" ? (
+                      <>
+                        <div className="flex justify-between">
+                          <span className="text-gray-500">Date</span>
+                          <span className="font-medium">{facilityDate || "—"}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-500">Time</span>
+                          <span className="font-medium">{facilityTime || "—"}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-500">Pax</span>
+                          <span className="font-medium">{facilityPax} people</span>
+                        </div>
+                      </>
+                    ) : mode === "group" ? (
                       <>
                         <div className="flex justify-between">
                           <span className="text-gray-500">Check-in</span>
@@ -1066,9 +1258,31 @@ export function AdminBookingPage() {
 
                   <hr className="border-gray-100" />
 
-                  {/* Room breakdown */}
+                  {/* Breakdown */}
                   <div className="space-y-2">
-                    {roomAssignments.map((ra, i) => {
+                    {mode === "meeting" ? (
+                      <div className="text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-gray-700 font-medium">
+                            {facilityType === "large" ? "Large Conf. Room" : "Standard Room"}
+                          </span>
+                          <span className="font-bold">
+                            ฿{(facilityType === "large" ? 5000 : 2500).toLocaleString()}
+                          </span>
+                        </div>
+                      </div>
+                    ) : mode === "restaurant" ? (
+                      <div className="text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-gray-700 font-medium">
+                            {facilityType === "private" ? "Private VIP Room" : "Standard Table"}
+                          </span>
+                          <span className="font-bold">
+                            {facilityType === "private" ? "฿1,000" : "Free"}
+                          </span>
+                        </div>
+                      </div>
+                    ) : roomAssignments.map((ra, i) => {
                       const room = ROOMS.find((r) => r.id === ra.roomTypeId);
                       if (!room) return null;
                       const rate =

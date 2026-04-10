@@ -30,7 +30,6 @@ export function SearchResultsPage() {
     if (guests > 0) {
       rooms = rooms.filter((room) => room.maxGuests >= guests);
     }
-
     setFilteredRooms(rooms);
   }, [searchParams, guestFilter]);
 

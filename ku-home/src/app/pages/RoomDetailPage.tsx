@@ -32,7 +32,6 @@ function getAmenityIcon(amenity: string) {
 export function RoomDetailPage() {
   const { id } = useParams();
   const room = ROOMS.find((r) => r.id === id) || ROOMS[2];
-
   const booking = useBookingForm(room);
 
   return (

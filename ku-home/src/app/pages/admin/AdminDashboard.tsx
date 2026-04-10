@@ -5,9 +5,7 @@ import {
   Search,
   BedDouble,
   CheckCircle2,
-  XCircle,
   Wrench,
-  DoorOpen,
   Users,
   Calendar,
   ChevronLeft,
@@ -17,6 +15,7 @@ import {
   Lock,
   X,
   ChevronDown,
+  Pencil,
 } from 'lucide-react';
 import { Input } from "../../components/ui/input.tsx";
 import { toast } from 'sonner';
@@ -36,6 +35,16 @@ interface RoomRecord {
   confirmationNumber?: string;
   totalAmount?: number;
   notes?: string;
+}
+
+interface PendingBooking {
+  id: string;
+  guestName: string;
+  roomType: string;
+  checkIn: string;
+  checkOut: string;
+  confirmationNumber: string;
+  totalAmount: number;
 }
 
 // ─── Status config ────────────────────────────────────────────────────────────
@@ -87,7 +96,8 @@ const STATUS_CONFIG: Record<
   },
 };
 
-// ─── Generate 100 mock rooms ──────────────────────────────────────────────────
+// ─── Mock Data ────────────────────────────────────────────────────────────────
+
 const MOCK_STATUSES: RoomStatus[] = [
   'available', 'available', 'available', 'available',
   'booked', 'booked',
@@ -119,8 +129,8 @@ function generateRooms(): RoomRecord[] {
       };
       if (status === 'booked' || status === 'checked_in' || status === 'checked_out') {
         room.guestName = guests[i % 4];
-        room.checkIn = '2025-03-18';
-        room.checkOut = '2025-03-21';
+        room.checkIn = '2025-04-01';
+        room.checkOut = '2025-04-05';
         room.confirmationNumber = `KU-${1000 + idx}`;
         room.totalAmount = 3600 + idx * 100;
       }
@@ -131,18 +141,39 @@ function generateRooms(): RoomRecord[] {
   return rooms;
 }
 
+const INITIAL_PENDING_BOOKINGS: PendingBooking[] = [
+  { id: 'pb1', guestName: 'Amanda White', roomType: 'Superior', checkIn: '2025-04-10', checkOut: '2025-04-12', confirmationNumber: 'KU-P001', totalAmount: 2400 },
+  { id: 'pb2', guestName: 'David Lee', roomType: 'Superior', checkIn: '2025-04-15', checkOut: '2025-04-18', confirmationNumber: 'KU-P002', totalAmount: 4000 },
+  { id: 'pb3', guestName: 'Maria Garcia', roomType: 'Deluxe', checkIn: '2025-04-08', checkOut: '2025-04-09', confirmationNumber: 'KU-P003', totalAmount: 1800 },
+  { id: 'pb4', guestName: 'Somsak Pol', roomType: 'Suite', checkIn: '2025-04-20', checkOut: '2025-04-22', confirmationNumber: 'KU-P004', totalAmount: 7000 },
+];
+
 // ─── Room Detail Modal ────────────────────────────────────────────────────────
 function RoomDetailModal({
   room,
+  pendingBookings,
   onClose,
-  onStatusChange,
+  onUpdateRoom,
+  onAssignBooking,
+  onCancelAssignment,
 }: {
   room: RoomRecord;
+  pendingBookings: PendingBooking[];
   onClose: () => void;
-  onStatusChange: (id: string, status: RoomStatus, notes?: string) => void;
+  onUpdateRoom: (id: string, updates: Partial<RoomRecord>) => void;
+  onAssignBooking: (roomId: string, booking: PendingBooking) => void;
+  onCancelAssignment: (room: RoomRecord) => void;
 }) {
   const cfg = STATUS_CONFIG[room.status];
   const [notes, setNotes] = useState(room.notes ?? '');
+
+  // Edit dates state
+  const [isEditingDates, setIsEditingDates] = useState(false);
+  const [ciDate, setCiDate] = useState(room.checkIn ?? '');
+  const [coDate, setCoDate] = useState(room.checkOut ?? '');
+
+  // Available room type match bookings
+  const matchingBookings = pendingBookings.filter(b => b.roomType === room.roomType);
 
   const actions: {
     label: string;
@@ -198,17 +229,22 @@ function RoomDetailModal({
     });
   }
 
+  const handleSaveDates = () => {
+    onUpdateRoom(room.id, { checkIn: ciDate, checkOut: coDate });
+    setIsEditingDates(false);
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden flex flex-col max-h-[90vh]">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 flex-shrink-0">
           <div className="flex items-center gap-3">
             <div className={`w-10 h-10 rounded-xl flex items-center justify-center border-2 ${cfg.bg} ${cfg.color}`}>
               <BedDouble className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-gray-900">{room.roomNumber}</h2>
+              <h2 className="text-lg font-bold text-gray-900">ห้อง {room.roomNumber}</h2>
               <p className="text-xs text-gray-500">{room.roomType} · ชั้น {room.floor}</p>
             </div>
           </div>
@@ -220,7 +256,7 @@ function RoomDetailModal({
           </button>
         </div>
 
-        <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+        <div className="p-6 space-y-5 overflow-y-auto">
           {/* Current status badge */}
           <div className={`flex items-center gap-2 px-4 py-3 rounded-xl border-2 ${cfg.bg}`}>
             <span className={cfg.color}>{cfg.icon}</span>
@@ -229,13 +265,56 @@ function RoomDetailModal({
             </span>
           </div>
 
-          {/* Guest info */}
+          {/* Pending Bookings Listing (Available Room) */}
+          {room.status === 'available' && (
+            <div className="bg-blue-50/50 rounded-xl border border-blue-100 p-4 space-y-3">
+              <p className="font-bold text-blue-800 flex items-center gap-1.5 text-sm">
+                <Calendar className="w-4 h-4" /> รายการรอ Assign (ตรงประเภทห้อง)
+              </p>
+              {matchingBookings.length === 0 ? (
+                <p className="text-xs text-blue-600 italic">ไม่มีรายการสำหรับห้องประเภทนี้</p>
+              ) : (
+                <div className="space-y-2">
+                  {matchingBookings.map((b) => (
+                    <div key={b.id} className="bg-white rounded-lg p-3 border border-blue-100 flex items-center justify-between gap-2 shadow-sm">
+                      <div className="overflow-hidden">
+                        <p className="text-sm font-bold text-gray-900 truncate">{b.guestName}</p>
+                        <p className="text-xs text-gray-500 truncate">{b.checkIn} → {b.checkOut}</p>
+                      </div>
+                      <button
+                        onClick={() => {
+                          onAssignBooking(room.id, b);
+                          onClose();
+                        }}
+                        className="bg-[#006b54] hover:bg-[#005a46] text-white text-xs font-bold px-3 py-1.5 rounded-lg flex-shrink-0 transition-colors"
+                      >
+                        Assign
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Guest info (Booked/Checked-in) */}
           {(room.status === 'booked' || room.status === 'checked_in' || room.status === 'checked_out') && (
             <div className="bg-gray-50 rounded-xl p-4 text-sm space-y-2">
-              <p className="font-bold text-gray-700 flex items-center gap-1.5 mb-3">
-                <Users className="w-4 h-4 text-[#006b54]" /> ข้อมูลผู้เข้าพัก
-              </p>
-              <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-gray-600">
+              <div className="flex items-center justify-between mb-3">
+                <p className="font-bold text-gray-700 flex items-center gap-1.5">
+                  <Users className="w-4 h-4 text-[#006b54]" /> ข้อมูลผู้เข้าพัก
+                </p>
+                {(room.status === 'booked' || room.status === 'checked_in') && !isEditingDates && (
+                  <button 
+                    onClick={() => setIsEditingDates(true)}
+                    className="text-[#006b54] text-xs hover:underline flex items-center gap-1 font-medium"
+                  >
+                    <Pencil className="w-3 h-3" /> แก้ไขวันที่
+                  </button>
+                )}
+              </div>
+              
+              <div className="grid grid-cols-2 gap-x-4 gap-y-3 text-gray-600">
                 <div>
                   <p className="text-xs text-gray-400">ชื่อผู้เข้าพัก</p>
                   <p className="font-semibold">{room.guestName ?? '—'}</p>
@@ -244,16 +323,37 @@ function RoomDetailModal({
                   <p className="text-xs text-gray-400">หมายเลขจอง</p>
                   <p className="font-mono font-semibold">{room.confirmationNumber ?? '—'}</p>
                 </div>
-                <div>
-                  <p className="text-xs text-gray-400">Check-in</p>
-                  <p className="font-semibold">{room.checkIn ?? '—'}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-gray-400">Check-out</p>
-                  <p className="font-semibold">{room.checkOut ?? '—'}</p>
-                </div>
+
+                {!isEditingDates ? (
+                  <>
+                    <div>
+                      <p className="text-xs text-gray-400">Check-in</p>
+                      <p className="font-semibold">{room.checkIn ?? '—'}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-400">Check-out</p>
+                      <p className="font-semibold">{room.checkOut ?? '—'}</p>
+                    </div>
+                  </>
+                ) : (
+                  <div className="col-span-2 grid grid-cols-2 gap-2 bg-white p-3 rounded-lg border border-gray-200">
+                    <div>
+                      <label className="text-xs text-gray-500 font-bold mb-1 block">Check-in</label>
+                      <Input type="date" value={ciDate} onChange={(e) => setCiDate(e.target.value)} className="h-8 text-xs" />
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-500 font-bold mb-1 block">Check-out</label>
+                      <Input type="date" value={coDate} onChange={(e) => setCoDate(e.target.value)} className="h-8 text-xs" />
+                    </div>
+                    <div className="col-span-2 flex gap-2 mt-1">
+                      <button onClick={handleSaveDates} className="flex-1 bg-[#006b54] text-white text-xs font-bold py-1.5 rounded-md">บันทึก</button>
+                      <button onClick={() => { setIsEditingDates(false); setCiDate(room.checkIn ?? ''); setCoDate(room.checkOut ?? ''); }} className="flex-1 bg-gray-100 text-gray-600 text-xs font-bold py-1.5 rounded-md border border-gray-200">ยกเลิก</button>
+                    </div>
+                  </div>
+                )}
+                
                 {room.totalAmount && (
-                  <div className="col-span-2">
+                  <div className="col-span-2 pt-1 border-t border-gray-100 mt-1">
                     <p className="text-xs text-gray-400">ยอดรวม</p>
                     <p className="font-bold text-[#006b54] text-base">
                       ฿{room.totalAmount.toLocaleString()}
@@ -276,6 +376,7 @@ function RoomDetailModal({
               <Link
                 to={`/admin/housekeeping/${room.id}`}
                 className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-700 bg-amber-100 hover:bg-amber-200 px-3 py-1.5 rounded-lg transition-colors"
+                onClick={onClose}
               >
                 <Sparkles className="w-3.5 h-3.5" /> ไปหน้า Housekeeping →
               </Link>
@@ -300,13 +401,13 @@ function RoomDetailModal({
           {actions.length > 0 && (
             <div className="space-y-2 pt-1">
               <p className="text-xs font-bold text-gray-500 uppercase tracking-wide">
-                เปลี่ยนสถานะ
+                เปลี่ยนสถานะ {room.status === 'booked' && '/ การจัดการ'}
               </p>
               {actions.map((a) => (
                 <button
                   key={a.status}
                   onClick={() => {
-                    onStatusChange(room.id, a.status, notes);
+                    onUpdateRoom(room.id, { status: a.status, notes });
                     onClose();
                   }}
                   className={`w-full flex items-center justify-center gap-2 py-2.5 rounded-xl font-bold text-sm transition-all ${a.style}`}
@@ -314,6 +415,17 @@ function RoomDetailModal({
                   {a.icon} {a.label}
                 </button>
               ))}
+              {room.status === 'booked' && (
+                <button
+                  onClick={() => {
+                    onCancelAssignment(room);
+                    onClose();
+                  }}
+                  className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl font-bold text-sm transition-all bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 mt-2"
+                >
+                  <X className="w-4 h-4" /> ยกเลิกการ Assign ห้อง
+                </button>
+              )}
             </div>
           )}
         </div>
@@ -358,6 +470,7 @@ export function AdminDashboard() {
   const navigate = useNavigate();
 
   const [rooms, setRooms] = useState<RoomRecord[]>(generateRooms);
+  const [pendingBookings, setPendingBookings] = useState<PendingBooking[]>(INITIAL_PENDING_BOOKINGS);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<RoomStatus | 'all'>('all');
   const [typeFilter, setTypeFilter] = useState<string>('all');
@@ -402,15 +515,57 @@ export function AdminDashboard() {
     return Array.from(map.entries()).sort((a, b) => a[0] - b[0]);
   }, [filtered]);
 
-  // ── Status change ──
-  const handleStatusChange = (id: string, status: RoomStatus, notes?: string) => {
-    setRooms((prev) =>
-      prev.map((r) => (r.id === id ? { ...r, status, notes: notes ?? r.notes } : r))
-    );
-    setSelectedRoom((prev) =>
-      prev?.id === id ? { ...prev, status, notes: notes ?? prev.notes } : prev
-    );
-    toast.success(`ห้อง ${id} → ${STATUS_CONFIG[status].label}`);
+  // ── Handlers ──
+  const handleUpdateRoom = (id: string, updates: Partial<RoomRecord>) => {
+    setRooms(prev => prev.map(r => r.id === id ? { ...r, ...updates } : r));
+    setSelectedRoom(prev => prev?.id === id ? { ...prev, ...updates } : prev);
+    
+    if (updates.checkIn || updates.checkOut) {
+      toast.success('อัปเดตวันที่เข้าพักสำเร็จ');
+    } else if (updates.status) {
+      toast.success(`ห้อง ${id} → ${STATUS_CONFIG[updates.status].label}`);
+    } else {
+      toast.success('อัปเดตข้อมูลสำเร็จ');
+    }
+  };
+
+  const handleAssignBooking = (roomId: string, booking: PendingBooking) => {
+    setPendingBookings(prev => prev.filter(b => b.id !== booking.id));
+    handleUpdateRoom(roomId, {
+      status: 'booked',
+      guestName: booking.guestName,
+      checkIn: booking.checkIn,
+      checkOut: booking.checkOut,
+      confirmationNumber: booking.confirmationNumber,
+      totalAmount: booking.totalAmount
+    });
+    toast.success(`Assign ห้อง ${roomId} สำเร็จ`);
+  };
+
+  const handleCancelAssignment = (room: RoomRecord) => {
+    if (room.guestName && room.checkIn && room.checkOut && room.confirmationNumber) {
+      const restoredBooking: PendingBooking = {
+        id: `pb_${Date.now()}`,
+        guestName: room.guestName,
+        roomType: room.roomType,
+        checkIn: room.checkIn,
+        checkOut: room.checkOut,
+        confirmationNumber: room.confirmationNumber,
+        totalAmount: room.totalAmount || 0,
+      };
+      setPendingBookings((prev) => [...prev, restoredBooking]);
+    }
+    
+    handleUpdateRoom(room.id, {
+      status: 'available',
+      guestName: undefined,
+      checkIn: undefined,
+      checkOut: undefined,
+      confirmationNumber: undefined,
+      totalAmount: undefined,
+      notes: undefined
+    });
+    toast.success(`ยกเลิกการ Assign ห้อง ${room.roomNumber} เรียบร้อยแล้ว`);
   };
 
   if (loading) {
@@ -438,7 +593,7 @@ export function AdminDashboard() {
             <div>
               <h1 className="text-2xl font-bold text-gray-900">Front Desk Dashboard</h1>
               <p className="text-sm text-gray-500">
-                จัดการห้องพักทั้งหมด {rooms.length} ห้อง · คลิกที่ห้องเพื่อดูรายละเอียด
+                จัดการห้องพักทั้งหมด {rooms.length} ห้อง · มีรายการรอ Assign {pendingBookings.length} รายการ
               </p>
             </div>
             <div className="relative w-full md:w-64">
@@ -611,8 +766,11 @@ export function AdminDashboard() {
       {selectedRoom && (
         <RoomDetailModal
           room={rooms.find((r) => r.id === selectedRoom.id) ?? selectedRoom}
+          pendingBookings={pendingBookings}
           onClose={() => setSelectedRoom(null)}
-          onStatusChange={handleStatusChange}
+          onUpdateRoom={handleUpdateRoom}
+          onAssignBooking={handleAssignBooking}
+          onCancelAssignment={handleCancelAssignment}
         />
       )}
     </div>
