@@ -1,4 +1,5 @@
 // ─── Date Utilities ──────────────────────────────────────────────────────────
+import { BookingType, RoomAssignment, RoomType } from "../src/models/index.ts";
 
 export const today = (): string => new Date().toISOString().split("T")[0];
 
@@ -53,3 +54,35 @@ export const calcPrice = ({
     total: roomRate + extraBedCost + breakfastCost,
   };
 };
+
+export const calcAdminBookingPrice = (
+  mode: BookingType,
+  facilityType: string,
+  roomAssignments: RoomAssignment[],
+  monthCount: number,
+  nights: number,
+  roomsList: RoomType[]
+): number => {
+  if (mode === "meeting") {
+    return facilityType === "large" ? 5000 : 2500;
+  }
+  if (mode === "restaurant") {
+    return facilityType === "private" ? 1000 : 0;
+  }
+  return roomAssignments.reduce((sum, ra) => {
+    const room = roomsList.find((r) => r.id === ra.roomTypeId);
+    if (!room) return sum;
+    const baseRate =
+      mode === "monthly"
+        ? room.rates.monthly * monthCount
+        : room.rates.daily.general * nights * ra.count;
+    const extraBedCost =
+      mode === "monthly"
+        ? 0
+        : ra.extraBeds * room.extraBedPrice * nights * ra.count;
+    const breakfastCost = ra.includeBreakfast ? BREAKFAST_PRICE * nights * ra.count : 0;
+    return sum + baseRate + extraBedCost + breakfastCost;
+  }, 0);
+};
+
+// TS-refresh

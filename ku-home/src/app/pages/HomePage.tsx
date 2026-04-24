@@ -127,35 +127,14 @@ export function HomePage() {
                     }
                     className="w-full p-3 bg-transparent cursor-pointer appearance-none"
                   >
-                    <option value={1}>1 Guest</option>
-                    <option value={2}>2 Guests</option>
-                    <option value={3}>3 Guests</option>
-                    <option value={4}>4+ Guests</option>
+                    <option value={0}>Select Room Type</option>
+                    <option value={2}>Standard Room Up to 2 Guests</option>
+                    <option value={3}>Deluxe Room Up to 3 Guests</option>
+                    <option value={4}>Suite Room Up to 4 Guests</option>
                   </select>
                 </div>
               </div>
-              <div className="flex flex-col space-y-2">
-                <label className="text-xs font-bold uppercase text-gray-500 tracking-wider ml-1">
-                  Guests
-                </label>
-                <div className="relative bg-gray-50 rounded-lg overflow-hidden hover:bg-gray-100 transition-colors cursor-pointer group">
-                  <select
-                    value={searchData.guests}
-                    onChange={(e) =>
-                      setSearchData({
-                        ...searchData,
-                        roomType: e.target.value,
-                      })
-                    }
-                    className="w-full p-3 bg-transparent cursor-pointer appearance-none"
-                  >
-                    <option value="">Select Room Type</option>
-                    <option value="standard">Standard Room</option>
-                    <option value="deluxe">Deluxe Room</option>
-                    <option value="suite">Suite</option>
-                  </select>
-                </div>
-              </div>
+              
             </div>
             <button
               type="button"
