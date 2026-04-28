@@ -9,6 +9,9 @@ import {
   SquarePen,
   QrCode,
   Tag,
+  Hotel,
+  CalendarCheck,
+  Receipt,
 } from "lucide-react";
 import { useAuth } from "../features/auth/AuthContext";
 
@@ -62,16 +65,23 @@ export function AdminInstructions() {
       color: "bg-orange-50 text-orange-700",
     },
     {
-      title: "booking-assignment",
-      icon: Tag,
-      description: "Create and manage promotional codes with expiry dates",
+      title: "Booking Assignment",
+      icon: CalendarCheck,
+      description: "Assign specific rooms to bookings and manage room allocations",
       link: "/admin/booking-assignment",
-      color: "bg-orange-50 text-orange-700",
+      color: "bg-indigo-50 text-indigo-700",
+    },
+    {
+      title: "Room Management",
+      icon: Hotel,
+      description: "Manage room inventory, room types, pricing, and availability settings",
+      link: "/admin/room-management",
+      color: "bg-cyan-50 text-cyan-800",
     },
     {
       title: "Billing & Receipts",
-      icon: ClipboardList,
-      description: "Process check-outs, input housekeeping fines, and generate printable receipts",
+      icon: Receipt,
+      description: "Process check-outs, manage housekeeping fines, and generate printable receipts",
       link: "/admin/billing",
       color: "bg-emerald-50 text-emerald-800",
     }
@@ -197,19 +207,55 @@ export function AdminInstructions() {
             </div>
 
             <div>
+              <h3 className="font-semibold text-gray-900 mb-3">Room & Inventory</h3>
+              <ul className="space-y-2 text-gray-600">
+                <li className="flex items-start">
+                  <span className="text-[#006b54] mr-2">•</span>
+                  <span>Dynamic room type configuration (Superior, Deluxe, Suite)</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="text-[#006b54] mr-2">•</span>
+                  <span>Flexible pricing management for different guest categories</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="text-[#006b54] mr-2">•</span>
+                  <span>Amenity and facility tracking per room level</span>
+                </li>
+              </ul>
+            </div>
+
+            <div>
+              <h3 className="font-semibold text-gray-900 mb-3">Allocation & Logistics</h3>
+              <ul className="space-y-2 text-gray-600">
+                <li className="flex items-start">
+                  <span className="text-[#006b54] mr-2">•</span>
+                  <span>Automated and manual room assignment tools</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="text-[#006b54] mr-2">•</span>
+                  <span>Floor-based organization and status monitoring</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="text-[#006b54] mr-2">•</span>
+                  <span>Integrated check-in/check-out workflow with billing</span>
+                </li>
+              </ul>
+            </div>
+
+            <div>
               <h3 className="font-semibold text-gray-900 mb-3">Analytics</h3>
               <ul className="space-y-2 text-gray-600">
                 <li className="flex items-start">
                   <span className="text-[#006b54] mr-2">•</span>
-                  <span>Real-time occupancy tracking</span>
+                  <span>Real-time occupancy tracking and forecasting</span>
                 </li>
                 <li className="flex items-start">
                   <span className="text-[#006b54] mr-2">•</span>
-                  <span>Revenue reports and insights</span>
+                  <span>Revenue reports and financial insights</span>
                 </li>
                 <li className="flex items-start">
                   <span className="text-[#006b54] mr-2">•</span>
-                  <span>Performance metrics dashboard</span>
+                  <span>Staff performance and housekeeping metrics</span>
                 </li>
               </ul>
             </div>

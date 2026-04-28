@@ -24,6 +24,7 @@ import { UserManagement } from "./features/admin/UserManagement";
 import { DiscountCodePage } from "./features/admin/DiscountCodePage";
 import { BookingAssignmentPage } from "./features/admin/BookingAssignmentPage";
 import { AdminBillingPage } from "./features/admin/AdminBillingPage";
+import { RoomManagementPage } from "./features/admin/RoomManagementPage";
 
 export default function App() {
   return (
@@ -57,6 +58,7 @@ export default function App() {
             <Route path="admin/discounts" element={<DiscountCodePage />} />
             <Route path="admin/booking-assignment" element={<BookingAssignmentPage />} />
             <Route path="admin/billing" element={<AdminBillingPage />} />
+            <Route path="admin/room-management" element={<RoomManagementPage />} />
           </Route>
         </Routes>
       </BrowserRouter>
