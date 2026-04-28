@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useAuth } from "../auth/AuthContext";
+import { useAuth } from "../auth/AuthContext.tsx";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import {
   BedDouble,
@@ -11,13 +11,13 @@ import {
   Plus,
   Minus,
 } from "lucide-react";
-import { Button } from "../../components/ui/button";
-import { Card } from "../../components/ui/card";
-import { Textarea } from "../../components/ui/textarea";
-import { Input } from "../../components/ui/input";
-import { Label } from "../../components/ui/label";
-import { Badge } from "../../components/ui/badge";
-import { projectId } from "../../utils/supabase/info";
+import { Button } from "../../components/ui/button.tsx";
+import { Card } from "../../components/ui/card.tsx";
+import { Textarea } from "../../components/ui/textarea.tsx";
+import { Input } from "../../components/ui/input.tsx";
+import { Label } from "../../components/ui/label.tsx";
+import { Badge } from "../../components/ui/badge.tsx";
+import { projectId } from "../../utils/supabase/info.tsx";
 import { toast } from "sonner";
 
 interface CheckedOutRoom {

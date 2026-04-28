@@ -65,7 +65,7 @@ export interface Room {
 
 export interface RoomType {
   id: string;
-  name: RoomTypeName;       
+  name: RoomTypeName;
   description: string;
   sizeSqM: number;
   baseGuests: number;
@@ -91,19 +91,19 @@ export interface HousekeepingRecord {
   completedAt: string;
 }
 
-// ─── Meeting Space ────────────────────────────────────────────────────────────
+// // ─── Meeting Space ────────────────────────────────────────────────────────────
 
-export interface MeetingSpace {
-  id: string;
-  type: string;
-  maxGuests: number;
-  rates: {
-    hourly: number;
-    halfDay: number;
-    fullDay: number;
-  };
-  amenities?: string[];
-}
+// export interface MeetingSpace {
+//   id: string;
+//   type: string;
+//   maxGuests: number;
+//   rates: {
+//     hourly: number;
+//     halfDay: number;
+//     fullDay: number;
+//   };
+//   amenities?: string[];
+// }
 
 // ─── Payloads ─────────────────────────────────────────────────────────────────
 

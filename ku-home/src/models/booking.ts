@@ -7,8 +7,8 @@ import { PaymentMethod, PaymentStatus } from "./index.ts";
 export type BookingStatus =
   | 'draft'
   | 'confirmed'
-  | 'checked-in'
-  | 'checked-out'
+  | 'check-in'
+  | 'check-out'
   | 'cancelled'
   | 'no-pay'
   | 'no-show';
