@@ -26,6 +26,8 @@ export function GuestInfoPage() {
   const [checkIn, setCheckInRaw] = useState<string>(checkInPrev);
   const [checkOut, setCheckOut] = useState<string>(checkOutPrev);
   const [guests, setGuests] = useState<number>(guestsPrev);
+  const [roomCount, setRoomCount] = useState<number>(1);
+  const [childrenCount, setChildrenCount] = useState<number>(0);
   const [extraBeds, setExtraBeds] = useState<number>(extraBedsPrev);
   const [includeBreakfast, setIncludeBreakfast] = useState<boolean>(includeBreakfastPrev);
   const [isKuMember, setIsKuMember] = useState(false);
@@ -64,6 +66,8 @@ export function GuestInfoPage() {
               checkIn={checkIn}
               checkOut={checkOut}
               guests={guests}
+              childrenCount={childrenCount}
+              roomCount={roomCount}
               extraBeds={extraBeds}
               includeBreakfast={includeBreakfast}
               isKuMember={isKuMember}
@@ -71,13 +75,17 @@ export function GuestInfoPage() {
               onCheckOutChange={setCheckOut}
               onGuestsChange={(delta) => {
                 setGuests((prev) => {
-                  const newGuests = Math.min(Math.max(1, prev + delta), room.maxGuests);
-                  // ถ้าแขกเกิน 2 คน ให้เพิ่มเตียงเสริมอัตโนมัติ (แขกคนที่ 3 -> 1 เตียง, คนที่ 4 -> 2 เตียง)
-                  // โดยไม่เกินจำนวนเตียงเสริมสูงสุดที่ห้องรองรับ
-                  const autoExtraBeds = Math.max(0, newGuests - 2);
-                  setExtraBeds(Math.min(autoExtraBeds, room.maxExtraBeds));
+                  const newGuests = Math.min(Math.max(1, prev + delta), room.maxGuests * roomCount);
+                  const autoExtraBeds = Math.max(0, newGuests - (2 * roomCount));
+                  setExtraBeds(Math.min(autoExtraBeds, room.maxExtraBeds * roomCount));
                   return newGuests;
                 });
+              }}
+              onChildrenCountChange={(delta) => {
+                setChildrenCount((prev) => Math.max(0, prev + delta));
+              }}
+              onRoomCountChange={(delta) => {
+                setRoomCount((prev) => Math.min(Math.max(1, prev + delta), 4));
               }}
               onBreakfastChange={setIncludeBreakfast}
             />
